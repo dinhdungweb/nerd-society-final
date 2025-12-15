@@ -4,20 +4,24 @@ import { CalendarDaysIcon, MapPinIcon } from '@heroicons/react/24/outline'
 import { getServerSession } from 'next-auth'
 import Link from 'next/link'
 
+export const dynamic = 'force-dynamic'
+
 const statusColors: Record<string, string> = {
     PENDING: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
     CONFIRMED: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-    CHECKED_IN: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+    IN_PROGRESS: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
     COMPLETED: 'bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-400',
     CANCELLED: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+    NO_SHOW: 'bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-500',
 }
 
 const statusLabels: Record<string, string> = {
-    PENDING: 'Chờ xác nhận',
+    PENDING: 'Chờ cọc',
     CONFIRMED: 'Đã xác nhận',
-    CHECKED_IN: 'Đang sử dụng',
+    IN_PROGRESS: 'Đang sử dụng',
     COMPLETED: 'Hoàn thành',
     CANCELLED: 'Đã hủy',
+    NO_SHOW: 'Không đến',
 }
 
 export default async function ProfilePage() {
@@ -28,7 +32,7 @@ export default async function ProfilePage() {
         where: { userId: session.user.id },
         include: {
             location: true,
-            combo: true,
+            room: true,
         },
         orderBy: { createdAt: 'desc' },
     })
@@ -64,7 +68,7 @@ export default async function ProfilePage() {
                                         </span>
                                     </div>
                                     <h3 className="mt-2 font-medium text-neutral-900 dark:text-white">
-                                        {booking.combo.name}
+                                        {booking.room.name}
                                     </h3>
                                     <div className="mt-2 flex items-center gap-4 text-sm text-neutral-500 dark:text-neutral-400">
                                         <div className="flex items-center gap-1">
@@ -79,7 +83,7 @@ export default async function ProfilePage() {
                                 </div>
                                 <div className="flex flex-col items-end gap-1">
                                     <span className="text-lg font-bold text-primary-600 dark:text-primary-400">
-                                        {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(booking.totalAmount)}
+                                        {new Intl.NumberFormat('vi-VN').format(booking.estimatedAmount)}đ
                                     </span>
                                     <span className="text-sm text-neutral-500 dark:text-neutral-400">
                                         {booking.startTime} - {booking.endTime}
@@ -97,3 +101,4 @@ export default async function ProfilePage() {
         </div>
     )
 }
+

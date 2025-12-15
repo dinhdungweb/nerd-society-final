@@ -3,9 +3,14 @@
 import { PhoneIcon } from '@heroicons/react/24/solid'
 import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
+import { usePathname } from 'next/navigation'
 
 export function FloatingContact() {
     const [isVisible, setIsVisible] = useState(false)
+    const pathname = usePathname()
+
+    // Hide on admin pages
+    const isAdminPage = pathname?.startsWith('/admin')
 
     useEffect(() => {
         const handleScroll = () => {
@@ -16,6 +21,9 @@ export function FloatingContact() {
         window.addEventListener('scroll', handleScroll)
         return () => window.removeEventListener('scroll', handleScroll)
     }, [])
+
+    // Don't render on admin pages
+    if (isAdminPage) return null
 
     return (
         <motion.div
@@ -39,3 +47,4 @@ export function FloatingContact() {
         </motion.div>
     )
 }
+

@@ -6,6 +6,8 @@ import { getServerSession } from 'next-auth'
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 
+export const dynamic = 'force-dynamic'
+
 export default async function BookingSuccessPage({
     searchParams,
 }: {
@@ -22,7 +24,7 @@ export default async function BookingSuccessPage({
         where: { id: bookingId },
         include: {
             location: true,
-            combo: true,
+            room: true,
             payment: true,
         },
     })
@@ -86,15 +88,39 @@ export default async function BookingSuccessPage({
                                 {new Date(booking.date).toLocaleDateString('vi-VN')}
                             </p>
                             <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                                {booking.startTime} - {booking.endTime} ({booking.combo.name})
+                                {booking.startTime} - {booking.endTime} ({booking.room.name})
                             </p>
                         </div>
+                    </div>
+
+                    {/* Price info */}
+                    <div className="border-t border-neutral-200 pt-4 dark:border-neutral-700">
+                        <div className="flex justify-between text-sm">
+                            <span className="text-neutral-500">Tổng tiền:</span>
+                            <span className="font-medium text-neutral-900 dark:text-white">
+                                {new Intl.NumberFormat('vi-VN').format(booking.estimatedAmount)}đ
+                            </span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                            <span className="text-neutral-500">Đặt cọc:</span>
+                            <span className="font-medium text-primary-600">
+                                {new Intl.NumberFormat('vi-VN').format(booking.depositAmount)}đ
+                            </span>
+                        </div>
+                        {booking.nerdCoinIssued > 0 && (
+                            <div className="flex justify-between text-sm">
+                                <span className="text-neutral-500">Nerd Coin:</span>
+                                <span className="font-medium text-yellow-600">
+                                    +{booking.nerdCoinIssued} 🪙
+                                </span>
+                            </div>
+                        )}
                     </div>
                 </div>
 
                 {isPending && (
                     <div className="mt-6 border-t border-neutral-200 pt-6 dark:border-neutral-700">
-                        <PaymentButton bookingId={booking.id} amount={booking.totalAmount} />
+                        <PaymentButton bookingId={booking.id} amount={booking.depositAmount} />
                     </div>
                 )}
 
@@ -119,3 +145,4 @@ export default async function BookingSuccessPage({
         </div>
     )
 }
+

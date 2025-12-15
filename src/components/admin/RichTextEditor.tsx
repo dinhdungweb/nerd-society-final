@@ -38,7 +38,6 @@ const formats = [
     'align', 'direction',
     'blockquote', 'code-block',
     'link', 'image', 'video',
-    'width', 'height', 'style',
 ]
 
 export default function RichTextEditor({ value, onChange, placeholder }: RichTextEditorProps) {

@@ -7,6 +7,11 @@ import {
     CurrencyDollarIcon,
     ClockIcon,
     SparklesIcon,
+    TrashIcon,
+    BuildingOffice2Icon,
+    UserIcon,
+    UserGroupIcon,
+    CubeIcon,
 } from '@heroicons/react/24/outline'
 import { Button } from '@/shared/Button'
 import NcModal from '@/shared/NcModal'
@@ -41,10 +46,18 @@ const serviceTypeColors: Record<string, string> = {
     POD_MULTI: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400',
 }
 
-const serviceTypeIcons: Record<string, string> = {
-    MEETING: '🏢',
-    POD_MONO: '👤',
-    POD_MULTI: '👥',
+const ServiceTypeIcon = ({ type }: { type: string }) => {
+    const iconClass = "w-7 h-7"
+    switch (type) {
+        case 'MEETING':
+            return <BuildingOffice2Icon className={`${iconClass} text-blue-600`} />
+        case 'POD_MONO':
+            return <UserIcon className={`${iconClass} text-emerald-600`} />
+        case 'POD_MULTI':
+            return <UserGroupIcon className={`${iconClass} text-teal-600`} />
+        default:
+            return <CubeIcon className={`${iconClass} text-neutral-600`} />
+    }
 }
 
 function formatPrice(price: number | null) {
@@ -166,6 +179,24 @@ export default function ServicesPage() {
         }
     }
 
+    const deleteService = async (service: Service) => {
+        if (!confirm(`Bạn có chắc muốn xóa dịch vụ "${service.name}"?`)) return
+
+        try {
+            const res = await fetch(`/api/admin/services/${service.id}`, {
+                method: 'DELETE',
+            })
+            if (res.ok) {
+                fetchServices()
+            } else {
+                const error = await res.json()
+                alert(error.error || 'Không thể xóa dịch vụ')
+            }
+        } catch (error) {
+            console.error('Error deleting service:', error)
+        }
+    }
+
     if (loading) {
         return (
             <div className="space-y-6">
@@ -210,7 +241,9 @@ export default function ServicesPage() {
                         <div className="flex items-start justify-between">
                             {/* Left: Info */}
                             <div className="flex items-start gap-4">
-                                <span className="text-3xl">{serviceTypeIcons[service.type]}</span>
+                                <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-neutral-100 dark:bg-neutral-700">
+                                    <ServiceTypeIcon type={service.type} />
+                                </div>
                                 <div>
                                     <div className="flex items-center gap-3 mb-2">
                                         <h3 className="text-lg font-semibold text-neutral-900 dark:text-white">
@@ -276,13 +309,22 @@ export default function ServicesPage() {
                             </div>
 
                             {/* Right: Actions */}
-                            <button
-                                onClick={() => openEditModal(service)}
-                                className="flex items-center gap-1 text-sm text-primary-600 hover:text-primary-700"
-                            >
-                                <PencilSquareIcon className="w-4 h-4" />
-                                Sửa
-                            </button>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => openEditModal(service)}
+                                    className="flex items-center gap-1 text-sm text-primary-600 hover:text-primary-700"
+                                >
+                                    <PencilSquareIcon className="w-4 h-4" />
+                                    Sửa
+                                </button>
+                                <button
+                                    onClick={() => deleteService(service)}
+                                    className="flex items-center gap-1 text-sm text-red-600 hover:text-red-700"
+                                >
+                                    <TrashIcon className="w-4 h-4" />
+                                    Xóa
+                                </button>
+                            </div>
                         </div>
                     </div>
                 ))}
@@ -293,6 +335,7 @@ export default function ServicesPage() {
                 isOpenProp={isModalOpen}
                 onCloseModal={() => setIsModalOpen(false)}
                 modalTitle={editingService ? 'Sửa dịch vụ' : 'Thêm dịch vụ mới'}
+                renderTrigger={() => null}
                 renderContent={() => (
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">

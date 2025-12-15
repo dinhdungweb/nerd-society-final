@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import {
     CheckCircleIcon,
@@ -12,7 +12,24 @@ import {
     ChevronLeftIcon,
     ChevronRightIcon,
     CalendarDaysIcon,
+    PlusIcon
 } from '@heroicons/react/24/outline'
+import BookingDetailModal from '@/components/admin/bookings/BookingDetailModal'
+import CreateBookingModal from '@/components/admin/bookings/CreateBookingModal'
+import BookingCalendarView from '@/components/admin/bookings/BookingCalendarView'
+import { TableCellsIcon, CalendarIcon } from '@heroicons/react/24/outline'
+
+interface Room {
+    id: string
+    name: string
+    type: string
+    locationId: string
+}
+
+interface Location {
+    id: string
+    name: string
+}
 
 interface Booking {
     id: string
@@ -20,11 +37,23 @@ interface Booking {
     date: string
     startTime: string
     endTime: string
-    totalAmount: number
+    estimatedAmount: number
+    depositAmount: number
+    depositStatus: string
     status: string
     user: { name: string | null; email: string; phone: string | null }
+    customerName: string
+    customerPhone: string
+    customerEmail: string | null
     location: { name: string }
-    combo: { name: string; duration: number }
+    room: { name: string; type: string } | null
+    // ... other fields if needed for logic but table uses these
+    actualStartTime: string | null
+    actualEndTime: string | null
+    actualAmount: number | null
+    remainingAmount: number | null
+    nerdCoinIssued: number
+    note: string | null
 }
 
 const statusColors: Record<string, string> = {
@@ -64,8 +93,22 @@ export default function BookingsPage() {
     const [statusFilter, setStatusFilter] = useState('ALL')
     const [currentPage, setCurrentPage] = useState(1)
 
+    // View mode
+    const [viewMode, setViewMode] = useState<'table' | 'calendar'>('calendar')
+    const [selectedDate, setSelectedDate] = useState(new Date())
+    const [rooms, setRooms] = useState<Room[]>([])
+    const [locations, setLocations] = useState<Location[]>([])
+    const [selectedLocation, setSelectedLocation] = useState<string>('')
+
+    // Modals state
+    const [createModalOpen, setCreateModalOpen] = useState(false)
+    const [detailModalOpen, setDetailModalOpen] = useState(false)
+    const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null)
+
     useEffect(() => {
         fetchBookings()
+        fetchRooms()
+        fetchLocations()
     }, [])
 
     const fetchBookings = async () => {
@@ -83,6 +126,34 @@ export default function BookingsPage() {
         }
     }
 
+    const fetchRooms = async () => {
+        try {
+            const res = await fetch('/api/admin/rooms')
+            if (res.ok) {
+                const data = await res.json()
+                setRooms(data)
+            }
+        } catch (error) {
+            console.error('Error fetching rooms:', error)
+        }
+    }
+
+    const fetchLocations = async () => {
+        try {
+            const res = await fetch('/api/admin/locations')
+            if (res.ok) {
+                const data = await res.json()
+                setLocations(data)
+                if (data.length > 0 && !selectedLocation) {
+                    setSelectedLocation(data[0].id)
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching locations:', error)
+        }
+    }
+
+
     const applyFilters = useCallback(() => {
         let result = [...bookings]
 
@@ -91,9 +162,12 @@ export default function BookingsPage() {
             const query = searchQuery.toLowerCase()
             result = result.filter(b =>
                 b.bookingCode.toLowerCase().includes(query) ||
-                b.user.name?.toLowerCase().includes(query) ||
-                b.user.email.toLowerCase().includes(query) ||
-                b.user.phone?.includes(query)
+                (b.customerName && b.customerName.toLowerCase().includes(query)) ||
+                (b.user?.name && b.user.name.toLowerCase().includes(query)) ||
+                (b.customerPhone && b.customerPhone.includes(query)) ||
+                (b.user?.phone && b.user.phone.includes(query)) ||
+                (b.customerEmail && b.customerEmail.toLowerCase().includes(query)) ||
+                (b.user?.email && b.user.email.toLowerCase().includes(query))
             )
         }
 
@@ -121,8 +195,13 @@ export default function BookingsPage() {
     const stats = {
         pending: bookings.filter(b => b.status === 'PENDING').length,
         confirmed: bookings.filter(b => b.status === 'CONFIRMED').length,
-        checkedIn: bookings.filter(b => b.status === 'CHECKED_IN').length,
+        inProgress: bookings.filter(b => b.status === 'IN_PROGRESS').length,
         cancelled: bookings.filter(b => b.status === 'CANCELLED').length,
+    }
+
+    const handleViewDetail = (booking: Booking) => {
+        setSelectedBooking(booking)
+        setDetailModalOpen(true)
     }
 
     if (loading) {
@@ -142,11 +221,46 @@ export default function BookingsPage() {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div>
-                <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">Quản lý Booking</h1>
-                <p className="mt-1 text-neutral-500 dark:text-neutral-400">
-                    Xem và quản lý tất cả đặt lịch • {bookings.length} booking
-                </p>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">Quản lý Booking</h1>
+                    <p className="mt-1 text-neutral-500 dark:text-neutral-400">
+                        Xem và quản lý tất cả đặt lịch • {bookings.length} booking
+                    </p>
+                </div>
+                <div className="flex items-center gap-3">
+                    {/* View Toggle */}
+                    <div className="flex rounded-xl border border-neutral-200 bg-neutral-100 p-1 dark:border-neutral-700 dark:bg-neutral-800">
+                        <button
+                            onClick={() => setViewMode('calendar')}
+                            className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium transition-all ${viewMode === 'calendar'
+                                ? 'bg-white text-neutral-900 shadow-sm dark:bg-neutral-700 dark:text-white'
+                                : 'text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-300'
+                                }`}
+                        >
+                            <CalendarIcon className="size-4" />
+                            Lịch
+                        </button>
+                        <button
+                            onClick={() => setViewMode('table')}
+                            className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium transition-all ${viewMode === 'table'
+                                ? 'bg-white text-neutral-900 shadow-sm dark:bg-neutral-700 dark:text-white'
+                                : 'text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-300'
+                                }`}
+                        >
+                            <TableCellsIcon className="size-4" />
+                            Bảng
+                        </button>
+                    </div>
+
+                    <button
+                        onClick={() => setCreateModalOpen(true)}
+                        className="flex items-center justify-center gap-2 rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white transition-all hover:bg-primary-700 active:scale-95"
+                    >
+                        <PlusIcon className="size-5" />
+                        Tạo Booking mới
+                    </button>
+                </div>
             </div>
 
             {/* Stats */}
@@ -180,15 +294,15 @@ export default function BookingsPage() {
                     </div>
                 </button>
                 <button
-                    onClick={() => setStatusFilter('CHECKED_IN')}
-                    className={`group rounded-xl p-4 text-left transition-all border ${statusFilter === 'CHECKED_IN' ? 'border-emerald-300 bg-emerald-50 dark:border-emerald-700 dark:bg-emerald-900/20' : 'border-neutral-200 bg-white hover:border-neutral-300 dark:border-neutral-800 dark:bg-neutral-900 dark:hover:border-neutral-700'}`}
+                    onClick={() => setStatusFilter('IN_PROGRESS')}
+                    className={`group rounded-xl p-4 text-left transition-all border ${statusFilter === 'IN_PROGRESS' ? 'border-emerald-300 bg-emerald-50 dark:border-emerald-700 dark:bg-emerald-900/20' : 'border-neutral-200 bg-white hover:border-neutral-300 dark:border-neutral-800 dark:bg-neutral-900 dark:hover:border-neutral-700'}`}
                 >
                     <div className="flex items-center gap-3">
                         <div className="flex size-10 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400">
                             <CheckCircleIcon className="size-5" />
                         </div>
                         <div>
-                            <p className="text-2xl font-bold text-neutral-900 dark:text-white">{stats.checkedIn}</p>
+                            <p className="text-2xl font-bold text-neutral-900 dark:text-white">{stats.inProgress}</p>
                             <p className="text-sm text-neutral-500 dark:text-neutral-400">Đang sử dụng</p>
                         </div>
                     </div>
@@ -209,157 +323,182 @@ export default function BookingsPage() {
                 </button>
             </div>
 
-            {/* Filters */}
-            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between bg-white rounded-xl p-4 border border-neutral-200 dark:bg-neutral-900 dark:border-neutral-800">
-                <div className="relative flex-1 max-w-md">
-                    <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-5 text-neutral-400" />
-                    <input
-                        type="text"
-                        placeholder="Tìm theo mã, tên, email, SĐT..."
-                        value={searchQuery}
-                        onChange={e => setSearchQuery(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-neutral-300 focus:border-primary-500 focus:ring-primary-500 dark:bg-neutral-800 dark:border-neutral-700 dark:text-white"
-                    />
-                </div>
-                <div className="flex items-center gap-3">
-                    <FunnelIcon className="size-5 text-neutral-400" />
-                    <select
-                        value={statusFilter}
-                        onChange={e => setStatusFilter(e.target.value)}
-                        className="rounded-xl border border-neutral-300 pl-4 pr-8 py-2.5 text-sm dark:bg-neutral-800 dark:border-neutral-700 dark:text-white"
-                    >
-                        <option value="ALL">Tất cả trạng thái</option>
-                        {Object.entries(statusLabels).map(([value, label]) => (
-                            <option key={value} value={value}>{label}</option>
-                        ))}
-                    </select>
-                    {statusFilter !== 'ALL' && (
-                        <button
-                            onClick={() => setStatusFilter('ALL')}
-                            className="text-sm text-primary-600 hover:underline dark:text-primary-400"
-                        >
-                            Xóa bộ lọc
-                        </button>
-                    )}
-                </div>
-            </div>
+            {/* Calendar View */}
+            {viewMode === 'calendar' && (
+                <BookingCalendarView
+                    bookings={bookings}
+                    rooms={selectedLocation ? rooms.filter(r => r.locationId === selectedLocation) : rooms}
+                    selectedDate={selectedDate}
+                    onDateChange={setSelectedDate}
+                    onBookingClick={handleViewDetail}
+                    locations={locations}
+                    selectedLocation={selectedLocation}
+                    onLocationChange={setSelectedLocation}
+                />
+            )}
 
-            {/* Table */}
-            <div className="rounded-xl bg-white border border-neutral-200 dark:bg-neutral-900 dark:border-neutral-800 overflow-hidden">
-                {paginatedBookings.length > 0 ? (
-                    <>
-                        <div className="overflow-x-auto">
-                            <table className="w-full">
-                                <thead>
-                                    <tr className="border-b border-neutral-200 text-left text-xs font-medium uppercase tracking-wider text-neutral-500 dark:border-neutral-700 dark:text-neutral-400">
-                                        <th className="px-6 py-4">Mã booking</th>
-                                        <th className="px-6 py-4">Khách hàng</th>
-                                        <th className="px-6 py-4">Cơ sở</th>
-                                        <th className="px-6 py-4">Combo</th>
-                                        <th className="px-6 py-4">Ngày/Giờ</th>
-                                        <th className="px-6 py-4">Tổng tiền</th>
-                                        <th className="px-6 py-4">Trạng thái</th>
-                                        <th className="px-6 py-4"></th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-neutral-200 dark:divide-neutral-700">
-                                    {paginatedBookings.map((booking) => (
-                                        <tr key={booking.id} className="text-sm transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800/50">
-                                            <td className="whitespace-nowrap px-6 py-4">
-                                                <span className="font-semibold text-primary-600 dark:text-primary-400">
-                                                    {booking.bookingCode}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div>
-                                                    <p className="font-medium text-neutral-900 dark:text-white">{booking.user.name}</p>
-                                                    <p className="text-neutral-500 dark:text-neutral-400">{booking.user.phone || booking.user.email}</p>
-                                                </div>
-                                            </td>
-                                            <td className="whitespace-nowrap px-6 py-4 text-neutral-600 dark:text-neutral-300">
-                                                {booking.location.name}
-                                            </td>
-                                            <td className="whitespace-nowrap px-6 py-4 text-neutral-600 dark:text-neutral-300">
-                                                {booking.combo.name}
-                                            </td>
-                                            <td className="whitespace-nowrap px-6 py-4 text-neutral-600 dark:text-neutral-300">
-                                                <div>
-                                                    <p>{new Date(booking.date).toLocaleDateString('vi-VN')}</p>
-                                                    <p className="text-neutral-500 dark:text-neutral-400">{booking.startTime} - {booking.endTime}</p>
-                                                </div>
-                                            </td>
-                                            <td className="whitespace-nowrap px-6 py-4 font-semibold text-neutral-900 dark:text-white">
-                                                {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(booking.totalAmount)}
-                                            </td>
-                                            <td className="whitespace-nowrap px-6 py-4">
-                                                <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${statusColors[booking.status]}`}>
-                                                    <span className={`size-1.5 rounded-full ${statusDots[booking.status]}`} />
-                                                    {statusLabels[booking.status]}
-                                                </span>
-                                            </td>
-                                            <td className="whitespace-nowrap px-6 py-4">
-                                                <Link
-                                                    href={`/admin/bookings/${booking.id}`}
-                                                    className="flex size-8 items-center justify-center rounded-lg text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-600 dark:hover:bg-neutral-800 dark:hover:text-neutral-300"
-                                                >
-                                                    <EyeIcon className="size-5" />
-                                                </Link>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+            {/* Table View */}
+            {viewMode === 'table' && (
+                <>
+                    {/* Filters */}
+                    <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between bg-white rounded-xl p-4 border border-neutral-200 dark:bg-neutral-900 dark:border-neutral-800">
+                        <div className="relative flex-1 max-w-md">
+                            <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-5 text-neutral-400" />
+                            <input
+                                type="text"
+                                placeholder="Tìm theo mã, tên, email, SĐT..."
+                                value={searchQuery}
+                                onChange={e => setSearchQuery(e.target.value)}
+                                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-neutral-300 focus:border-primary-500 focus:ring-primary-500 dark:bg-neutral-800 dark:border-neutral-700 dark:text-white"
+                            />
                         </div>
+                        <div className="flex items-center gap-3">
+                            <FunnelIcon className="size-5 text-neutral-400" />
+                            <select
+                                value={statusFilter}
+                                onChange={e => setStatusFilter(e.target.value)}
+                                className="rounded-xl border border-neutral-300 pl-4 pr-8 py-2.5 text-sm dark:bg-neutral-800 dark:border-neutral-700 dark:text-white"
+                            >
+                                <option value="ALL">Tất cả trạng thái</option>
+                                {Object.entries(statusLabels).map(([value, label]) => (
+                                    <option key={value} value={value}>{label}</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
 
-                        {/* Pagination */}
-                        {totalPages > 1 && (
-                            <div className="flex items-center justify-between border-t border-neutral-200 px-6 py-4 dark:border-neutral-700">
-                                <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                                    Hiển thị {(currentPage - 1) * ITEMS_PER_PAGE + 1}-{Math.min(currentPage * ITEMS_PER_PAGE, filteredBookings.length)} của {filteredBookings.length}
-                                </p>
-                                <div className="flex items-center gap-2">
-                                    <button
-                                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                                        disabled={currentPage === 1}
-                                        className="p-2 rounded-lg border border-neutral-300 text-neutral-600 hover:bg-neutral-100 disabled:opacity-50 disabled:cursor-not-allowed dark:border-neutral-600 dark:text-neutral-400 dark:hover:bg-neutral-800"
-                                    >
-                                        <ChevronLeftIcon className="size-4" />
-                                    </button>
-                                    {[...Array(totalPages)].map((_, i) => (
-                                        <button
-                                            key={i}
-                                            onClick={() => setCurrentPage(i + 1)}
-                                            className={`size-8 rounded-lg text-sm font-medium transition-colors ${currentPage === i + 1
-                                                ? 'bg-primary-600 text-white'
-                                                : 'text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800'
-                                                }`}
-                                        >
-                                            {i + 1}
-                                        </button>
-                                    ))}
-                                    <button
-                                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                                        disabled={currentPage === totalPages}
-                                        className="p-2 rounded-lg border border-neutral-300 text-neutral-600 hover:bg-neutral-100 disabled:opacity-50 disabled:cursor-not-allowed dark:border-neutral-600 dark:text-neutral-400 dark:hover:bg-neutral-800"
-                                    >
-                                        <ChevronRightIcon className="size-4" />
-                                    </button>
+                    {/* Table */}
+                    <div className="rounded-xl bg-white border border-neutral-200 dark:bg-neutral-900 dark:border-neutral-800 overflow-hidden">
+                        {paginatedBookings.length > 0 ? (
+                            <>
+                                <div className="overflow-x-auto">
+                                    <table className="w-full">
+                                        <thead>
+                                            <tr className="border-b border-neutral-200 text-left text-xs font-medium uppercase tracking-wider text-neutral-500 dark:border-neutral-700 dark:text-neutral-400">
+                                                <th className="px-6 py-4">Mã booking</th>
+                                                <th className="px-6 py-4">Khách hàng</th>
+                                                <th className="px-6 py-4">Phòng / Dịch vụ</th>
+                                                <th className="px-6 py-4">Ngày/Giờ</th>
+                                                <th className="px-6 py-4">Tổng tiền</th>
+                                                <th className="px-6 py-4">Trạng thái</th>
+                                                <th className="px-6 py-4"></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-neutral-200 dark:divide-neutral-700">
+                                            {paginatedBookings.map((booking) => (
+                                                <tr key={booking.id} className="text-sm transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800/50">
+                                                    <td className="whitespace-nowrap px-6 py-4">
+                                                        <span className="font-semibold text-primary-600 dark:text-primary-400">
+                                                            {booking.bookingCode}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <div>
+                                                            <p className="font-medium text-neutral-900 dark:text-white">{booking.customerName || booking.user?.name}</p>
+                                                            <p className="text-neutral-500 dark:text-neutral-400">{booking.customerPhone || booking.user?.phone || booking.customerEmail}</p>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-neutral-600 dark:text-neutral-300">
+                                                        <p className="font-medium">{booking.room?.name || 'Không xác định'}</p>
+                                                        <p className="text-xs text-neutral-500">{booking.location.name}</p>
+                                                    </td>
+                                                    <td className="whitespace-nowrap px-6 py-4 text-neutral-600 dark:text-neutral-300">
+                                                        <div>
+                                                            <p>{new Date(booking.date).toLocaleDateString('vi-VN')}</p>
+                                                            <p className="text-neutral-500 dark:text-neutral-400">{booking.startTime} - {booking.endTime}</p>
+                                                        </div>
+                                                    </td>
+                                                    <td className="whitespace-nowrap px-6 py-4 font-semibold text-neutral-900 dark:text-white">
+                                                        {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(booking.estimatedAmount)}
+                                                        {booking.depositStatus === 'PAID_CASH' && (
+                                                            <span className="ml-2 text-xs font-normal text-emerald-600 block">Đã thu cọc</span>
+                                                        )}
+                                                    </td>
+                                                    <td className="whitespace-nowrap px-6 py-4">
+                                                        <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${statusColors[booking.status] || statusColors['PENDING']}`}>
+                                                            <span className={`size-1.5 rounded-full ${statusDots[booking.status] || statusDots['PENDING']}`} />
+                                                            {statusLabels[booking.status] || booking.status}
+                                                        </span>
+                                                    </td>
+                                                    <td className="whitespace-nowrap px-6 py-4">
+                                                        <button
+                                                            onClick={() => handleViewDetail(booking)}
+                                                            className="flex size-8 items-center justify-center rounded-lg text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-600 dark:hover:bg-neutral-800 dark:hover:text-neutral-300"
+                                                        >
+                                                            <EyeIcon className="size-5" />
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
                                 </div>
+
+                                {/* Pagination */}
+                                {totalPages > 1 && (
+                                    <div className="flex items-center justify-between border-t border-neutral-200 px-6 py-4 dark:border-neutral-700">
+                                        <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                                            Hiển thị {(currentPage - 1) * ITEMS_PER_PAGE + 1}-{Math.min(currentPage * ITEMS_PER_PAGE, filteredBookings.length)} của {filteredBookings.length}
+                                        </p>
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                                disabled={currentPage === 1}
+                                                className="p-2 rounded-lg border border-neutral-300 text-neutral-600 hover:bg-neutral-100 disabled:opacity-50 disabled:cursor-not-allowed dark:border-neutral-600 dark:text-neutral-400 dark:hover:bg-neutral-800"
+                                            >
+                                                <ChevronLeftIcon className="size-4" />
+                                            </button>
+                                            {[...Array(totalPages)].map((_, i) => (
+                                                <button
+                                                    key={i}
+                                                    onClick={() => setCurrentPage(i + 1)}
+                                                    className={`size-8 rounded-lg text-sm font-medium transition-colors ${currentPage === i + 1
+                                                        ? 'bg-primary-600 text-white'
+                                                        : 'text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800'
+                                                        }`}
+                                                >
+                                                    {i + 1}
+                                                </button>
+                                            ))}
+                                            <button
+                                                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                                disabled={currentPage === totalPages}
+                                                className="p-2 rounded-lg border border-neutral-300 text-neutral-600 hover:bg-neutral-100 disabled:opacity-50 disabled:cursor-not-allowed dark:border-neutral-600 dark:text-neutral-400 dark:hover:bg-neutral-800"
+                                            >
+                                                <ChevronRightIcon className="size-4" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </>
+                        ) : (
+                            <div className="px-6 py-16 text-center">
+                                <CalendarDaysIcon className="mx-auto size-12 text-neutral-300 dark:text-neutral-600" />
+                                <p className="mt-4 text-lg font-medium text-neutral-900 dark:text-white">
+                                    {searchQuery || statusFilter !== 'ALL' ? 'Không tìm thấy kết quả' : 'Chưa có booking nào'}
+                                </p>
+                                <p className="mt-1 text-neutral-500 dark:text-neutral-400">
+                                    {searchQuery || statusFilter !== 'ALL' ? 'Thử thay đổi bộ lọc' : 'Các booking sẽ xuất hiện ở đây'}
+                                </p>
                             </div>
                         )}
-                    </>
-                ) : (
-                    <div className="px-6 py-16 text-center">
-                        <CalendarDaysIcon className="mx-auto size-12 text-neutral-300 dark:text-neutral-600" />
-                        <p className="mt-4 text-lg font-medium text-neutral-900 dark:text-white">
-                            {searchQuery || statusFilter !== 'ALL' ? 'Không tìm thấy kết quả' : 'Chưa có booking nào'}
-                        </p>
-                        <p className="mt-1 text-neutral-500 dark:text-neutral-400">
-                            {searchQuery || statusFilter !== 'ALL' ? 'Thử thay đổi bộ lọc' : 'Các booking sẽ xuất hiện ở đây'}
-                        </p>
                     </div>
-                )}
-            </div>
+                </>
+            )}
+
+            {/* Modals */}
+            <CreateBookingModal
+                open={createModalOpen}
+                setOpen={setCreateModalOpen}
+                onSuccess={fetchBookings}
+            />
+
+            <BookingDetailModal
+                open={detailModalOpen}
+                setOpen={setDetailModalOpen}
+                booking={selectedBooking}
+                onRefresh={fetchBookings}
+            />
         </div>
     )
 }

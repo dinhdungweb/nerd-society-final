@@ -1,6 +1,6 @@
 'use client'
 
-import { BanknotesIcon } from '@heroicons/react/24/outline'
+
 import { Button } from '@/shared/Button'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -12,7 +12,7 @@ interface PaymentButtonProps {
 
 export default function PaymentButton({ bookingId, amount }: PaymentButtonProps) {
     const [loading, setLoading] = useState(false)
-    const [paymentMethod, setPaymentMethod] = useState<'VNPAY' | 'CASH'>('VNPAY')
+    const paymentMethod = 'VNPAY' // Only VNPAY available for online bookings
     const router = useRouter()
 
     const handlePayment = async () => {
@@ -61,32 +61,19 @@ export default function PaymentButton({ bookingId, amount }: PaymentButtonProps)
                     Chọn phương thức thanh toán:
                 </p>
                 <div className="space-y-2">
-                    <label
-                        className={`flex cursor-pointer items-center justify-between rounded-lg border p-3 transition-all ${paymentMethod === 'VNPAY' ? 'border-primary-500 bg-white shadow-sm dark:bg-neutral-900' : 'border-neutral-200 bg-white dark:border-neutral-700 dark:bg-neutral-900'}`}
-                        onClick={() => setPaymentMethod('VNPAY')}
-                    >
+                    <label className="flex items-center justify-between rounded-lg border border-primary-500 bg-white p-3 shadow-sm dark:bg-neutral-900">
                         <div className="flex items-center gap-3">
-                            <input type="radio" name="payment" checked={paymentMethod === 'VNPAY'} onChange={() => setPaymentMethod('VNPAY')} className="text-primary-500 focus:ring-primary-500" />
+                            <input type="radio" name="payment" checked readOnly className="text-primary-500 focus:ring-primary-500" />
                             <span className="font-medium text-neutral-900 dark:text-white">VNPay</span>
                         </div>
                         <img src="https://vnpay.vn/assets/images/logo-icon/logo-primary.svg" alt="VNPay" className="h-6" />
                     </label>
 
-                    <label
-                        className={`flex cursor-pointer items-center justify-between rounded-lg border p-3 transition-all ${paymentMethod === 'CASH' ? 'border-primary-500 bg-white shadow-sm dark:bg-neutral-900' : 'border-neutral-200 bg-white dark:border-neutral-700 dark:bg-neutral-900'}`}
-                        onClick={() => setPaymentMethod('CASH')}
-                    >
-                        <div className="flex items-center gap-3">
-                            <input type="radio" name="payment" checked={paymentMethod === 'CASH'} onChange={() => setPaymentMethod('CASH')} className="text-primary-500 focus:ring-primary-500" />
-                            <span className="font-medium text-neutral-900 dark:text-white">Thanh toán tại quầy</span>
-                        </div>
-                        <BanknotesIcon className="size-6 text-green-600" />
-                    </label>
-
+                    {/* MoMo - Coming soon */}
                     <label className="flex cursor-not-allowed items-center justify-between rounded-lg border border-neutral-200 bg-neutral-100 p-3 opacity-60 dark:border-neutral-700 dark:bg-neutral-800">
                         <div className="flex items-center gap-3">
                             <input type="radio" name="payment" disabled className="text-neutral-400" />
-                            <span className="font-medium text-neutral-500">MoMo (Bảo trì)</span>
+                            <span className="font-medium text-neutral-500">MoMo (Sắp có)</span>
                         </div>
                         <img src="https://upload.wikimedia.org/wikipedia/vi/f/fe/MoMo_Logo.png" alt="MoMo" className="h-6 opacity-50" />
                     </label>
@@ -98,7 +85,7 @@ export default function PaymentButton({ bookingId, amount }: PaymentButtonProps)
                 disabled={loading}
                 className="w-full justify-center"
             >
-                {loading ? 'Đang xử lý...' : paymentMethod === 'CASH' ? `Xác nhận đặt lịch (${new Intl.NumberFormat('vi-VN').format(amount)}đ)` : `Thanh toán ${new Intl.NumberFormat('vi-VN').format(amount)}đ`}
+                {loading ? 'Đang xử lý...' : `Thanh toán ${new Intl.NumberFormat('vi-VN').format(amount)}đ`}
             </Button>
         </div>
     )

@@ -6,6 +6,7 @@ import {
     ChevronLeftIcon,
     Cog6ToothIcon,
     CubeIcon,
+    Squares2X2Icon,
     FolderIcon,
     HomeIcon,
     NewspaperIcon,
@@ -30,10 +31,9 @@ const navigationGroups = [
     {
         name: 'Quản lý đặt lịch',
         items: [
-            { name: 'Lịch đặt phòng', href: '/admin/calendar', icon: CalendarDaysIcon },
             { name: 'Bookings', href: '/admin/bookings', icon: CalendarDaysIcon },
             { name: 'Phòng', href: '/admin/rooms', icon: CubeIcon },
-            { name: 'Dịch vụ', href: '/admin/services', icon: CubeIcon },
+            { name: 'Dịch vụ', href: '/admin/services', icon: Squares2X2Icon },
             { name: 'Cơ sở', href: '/admin/locations', icon: BuildingStorefrontIcon },
         ]
     },

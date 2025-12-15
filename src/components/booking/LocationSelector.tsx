@@ -8,7 +8,7 @@ interface Location {
     id: string
     name: string
     address: string
-    image?: string
+    image?: string | null
 }
 
 interface LocationSelectorProps {

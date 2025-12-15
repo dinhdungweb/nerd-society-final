@@ -20,7 +20,7 @@ export async function POST(req: Request) {
             where: { id: bookingId },
             include: {
                 payment: true,
-                combo: true,
+                room: true,
             },
         })
 
@@ -42,9 +42,9 @@ export async function POST(req: Request) {
         const orderId = `${booking.bookingCode}-${Date.now()}`
 
         const paymentUrl = generateVNPayUrl({
-            amount: booking.totalAmount,
+            amount: booking.depositAmount,
             orderId: orderId, // Use unique ref
-            orderInfo: `Thanh toan booking ${booking.bookingCode}`,
+            orderInfo: `Dat coc booking ${booking.bookingCode}`,
             ipAddr: ipAddr.split(',')[0].trim(),
         })
 
@@ -63,3 +63,4 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
     }
 }
+

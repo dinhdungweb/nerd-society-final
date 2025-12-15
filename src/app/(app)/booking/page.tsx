@@ -1,43 +1,30 @@
-import BookingWizard from '@/components/booking/BookingWizard'
+import BookingWizardV2 from '@/components/booking/BookingWizardV2'
 import { prisma } from '@/lib/prisma'
+
+export const dynamic = 'force-dynamic'
 
 export const metadata = {
     title: 'Đặt lịch - Nerd Society',
     description: 'Đặt lịch sử dụng không gian làm việc chung tại Nerd Society',
 }
 
-async function getBookingData() {
-    const [locations, combos] = await Promise.all([
-        prisma.location.findMany({
-            where: { isActive: true },
-            select: {
-                id: true,
-                name: true,
-                address: true,
-                image: true,
-            },
-            orderBy: { createdAt: 'asc' },
-        }),
-        prisma.combo.findMany({
-            where: { isActive: true },
-            select: {
-                id: true,
-                name: true,
-                duration: true,
-                price: true,
-                description: true,
-                features: true,
-                isPopular: true,
-            },
-            orderBy: { sortOrder: 'asc' },
-        }),
-    ])
+async function getLocations() {
+    const locations = await prisma.location.findMany({
+        where: { isActive: true },
+        select: {
+            id: true,
+            name: true,
+            address: true,
+            image: true,
+        },
+        orderBy: { createdAt: 'asc' },
+    })
 
-    return { locations, combos }
+    return locations
 }
 
 export default async function BookingPage() {
-    const { locations, combos } = await getBookingData()
+    const locations = await getLocations()
 
     return (
         <div className="bg-neutral-50 min-h-screen py-16 dark:bg-neutral-950">
@@ -51,8 +38,9 @@ export default async function BookingPage() {
                     </p>
                 </div>
 
-                <BookingWizard locations={locations} combos={combos} />
+                <BookingWizardV2 locations={locations} />
             </div>
         </div>
     )
 }
+

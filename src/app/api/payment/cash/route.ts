@@ -40,6 +40,7 @@ export async function POST(req: Request) {
                 where: { id: bookingId },
                 data: {
                     status: 'CONFIRMED', // Confirm booking, payment will be collected at counter
+                    depositStatus: 'WAIVED', // Waived deposit for cash payment
                 },
             }),
         ])
@@ -50,7 +51,7 @@ export async function POST(req: Request) {
             include: {
                 user: true,
                 location: true,
-                combo: true,
+                room: true,
                 payment: true,
             },
         })
@@ -65,3 +66,4 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
     }
 }
+

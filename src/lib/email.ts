@@ -45,6 +45,22 @@ export async function sendBookingEmail(booking: any) {
         paymentStatus: booking.payment?.status
     })
 
+    // Determine recipient email - prefer user email, fallback to customerEmail
+    const recipientEmail = booking.user?.email || booking.customerEmail
+    if (!recipientEmail) {
+        console.log('⚠️ No email address found for booking:', booking.bookingCode)
+        return
+    }
+
+    // Get name - prefer user name, fallback to customerName
+    const customerName = booking.user?.name || booking.customerName || 'Quý khách'
+
+    // Get service name - prefer room, fallback to combo (for backward compatibility)
+    const serviceName = booking.room?.name || booking.combo?.name || 'Dịch vụ'
+
+    // Get amount - prefer estimatedAmount, fallback to totalAmount
+    const amount = booking.estimatedAmount || booking.totalAmount || 0
+
     const isConfirmed = booking.status === 'CONFIRMED'
 
     let description = 'Chúng tôi đã nhận được yêu cầu đặt lịch của bạn. Vui lòng thanh toán để hoàn tất.'
@@ -63,16 +79,16 @@ export async function sendBookingEmail(booking: any) {
     const html = `
     <div style="font-family: sans-serif; max-w-600px; margin: 0 auto;">
       <h1 style="color: #4f46e5;">${isConfirmed ? 'Đặt lịch thành công!' : 'Đã nhận yêu cầu đặt lịch'}</h1>
-      <p>Xin chào ${booking.user.name},</p>
+      <p>Xin chào ${customerName},</p>
       <p>${description}</p>
       
       <div style="background: #f3f4f6; padding: 20px; border-radius: 10px; margin: 20px 0;">
         <h3 style="margin-top: 0;">Thông tin chi tiết:</h3>
         <p><strong>Mã đặt lịch:</strong> ${booking.bookingCode}</p>
-        <p><strong>Cơ sở:</strong> ${booking.location.name}</p>
-        <p><strong>Gói dịch vụ:</strong> ${booking.combo.name}</p>
+        <p><strong>Cơ sở:</strong> ${booking.location?.name || 'N/A'}</p>
+        <p><strong>Dịch vụ:</strong> ${serviceName}</p>
         <p><strong>Thời gian:</strong> ${new Date(booking.date).toLocaleDateString('vi-VN')} | ${booking.startTime} - ${booking.endTime}</p>
-        <p><strong>Tổng tiền:</strong> ${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(booking.totalAmount)}</p>
+        <p><strong>Tổng tiền:</strong> ${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount)}</p>
       </div>
 
       <p>Bạn có thể xem chi tiết và quản lý đặt lịch tại:</p>
@@ -82,7 +98,7 @@ export async function sendBookingEmail(booking: any) {
     </div>
   `
 
-    await sendEmail({ to: booking.user.email, subject, html })
+    await sendEmail({ to: recipientEmail, subject, html })
 }
 
 export async function sendPasswordResetEmail(email: string, token: string) {

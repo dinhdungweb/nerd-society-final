@@ -53,11 +53,13 @@ export async function GET(req: Request) {
                     where: { id: bookingId },
                     data: {
                         status: 'CONFIRMED', // Auto confirm if paid
+                        depositStatus: 'PAID_ONLINE',
+                        depositPaidAt: new Date(),
                     },
                     include: {
                         user: true,
                         location: true,
-                        combo: true,
+                        room: true,
                     },
                 }),
             ])

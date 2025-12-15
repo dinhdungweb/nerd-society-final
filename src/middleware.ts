@@ -17,5 +17,7 @@ export default withAuth(
 )
 
 export const config = {
-    matcher: ['/admin/:path*', '/profile/:path*', '/booking/:path*'],
+    // Note: /booking removed to allow guest booking - API handles customer info
+    matcher: ['/admin/:path*', '/profile/:path*'],
 }
+

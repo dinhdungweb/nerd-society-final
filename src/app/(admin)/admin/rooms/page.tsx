@@ -8,6 +8,10 @@ import {
     CheckCircleIcon,
     XCircleIcon,
     PencilSquareIcon,
+    TrashIcon,
+    UserIcon,
+    CubeIcon,
+    Squares2X2Icon,
 } from '@heroicons/react/24/outline'
 import { Button } from '@/shared/Button'
 import NcModal from '@/shared/NcModal'
@@ -44,11 +48,20 @@ const roomTypeColors: Record<string, string> = {
     POD_MULTI: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400',
 }
 
-const roomTypeIcons: Record<string, string> = {
-    MEETING_LONG: '🏢',
-    MEETING_ROUND: '🔵',
-    POD_MONO: '👤',
-    POD_MULTI: '👥',
+const RoomTypeIcon = ({ type }: { type: string }) => {
+    const iconClass = "w-6 h-6"
+    switch (type) {
+        case 'MEETING_LONG':
+            return <BuildingOffice2Icon className={`${iconClass} text-blue-600`} />
+        case 'MEETING_ROUND':
+            return <Squares2X2Icon className={`${iconClass} text-indigo-600`} />
+        case 'POD_MONO':
+            return <UserIcon className={`${iconClass} text-emerald-600`} />
+        case 'POD_MULTI':
+            return <UserGroupIcon className={`${iconClass} text-teal-600`} />
+        default:
+            return <CubeIcon className={`${iconClass} text-neutral-600`} />
+    }
 }
 
 export default function RoomsPage() {
@@ -174,6 +187,24 @@ export default function RoomsPage() {
         }
     }
 
+    const deleteRoom = async (room: Room) => {
+        if (!confirm(`Bạn có chắc muốn xóa phòng "${room.name}"?`)) return
+
+        try {
+            const res = await fetch(`/api/admin/rooms/${room.id}`, {
+                method: 'DELETE',
+            })
+            if (res.ok) {
+                fetchRooms()
+            } else {
+                const error = await res.json()
+                alert(error.error || 'Không thể xóa phòng')
+            }
+        } catch (error) {
+            console.error('Error deleting room:', error)
+        }
+    }
+
     if (loading) {
         return (
             <div className="space-y-6">
@@ -214,14 +245,16 @@ export default function RoomsPage() {
                     <div
                         key={room.id}
                         className={`bg-white dark:bg-neutral-800 rounded-xl border ${room.isActive
-                                ? 'border-neutral-200 dark:border-neutral-700'
-                                : 'border-red-200 dark:border-red-800 opacity-60'
+                            ? 'border-neutral-200 dark:border-neutral-700'
+                            : 'border-red-200 dark:border-red-800 opacity-60'
                             } p-5 hover:shadow-lg transition-shadow`}
                     >
                         {/* Header */}
                         <div className="flex items-start justify-between mb-4">
                             <div className="flex items-center gap-3">
-                                <span className="text-2xl">{roomTypeIcons[room.type]}</span>
+                                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-neutral-100 dark:bg-neutral-700">
+                                    <RoomTypeIcon type={room.type} />
+                                </div>
                                 <div>
                                     <h3 className="font-semibold text-neutral-900 dark:text-white">
                                         {room.name}
@@ -234,8 +267,8 @@ export default function RoomsPage() {
                             <button
                                 onClick={() => toggleRoomStatus(room)}
                                 className={`p-1.5 rounded-full transition-colors ${room.isActive
-                                        ? 'text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20'
-                                        : 'text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20'
+                                    ? 'text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20'
+                                    : 'text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20'
                                     }`}
                                 title={room.isActive ? 'Đang hoạt động' : 'Đã tắt'}
                             >
@@ -281,13 +314,22 @@ export default function RoomsPage() {
                             <span className="text-xs text-neutral-500">
                                 {room._count.bookings} lượt đặt
                             </span>
-                            <button
-                                onClick={() => openEditModal(room)}
-                                className="flex items-center gap-1 text-sm text-primary-600 hover:text-primary-700"
-                            >
-                                <PencilSquareIcon className="w-4 h-4" />
-                                Sửa
-                            </button>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => openEditModal(room)}
+                                    className="flex items-center gap-1 text-sm text-primary-600 hover:text-primary-700"
+                                >
+                                    <PencilSquareIcon className="w-4 h-4" />
+                                    Sửa
+                                </button>
+                                <button
+                                    onClick={() => deleteRoom(room)}
+                                    className="flex items-center gap-1 text-sm text-red-600 hover:text-red-700"
+                                >
+                                    <TrashIcon className="w-4 h-4" />
+                                    Xóa
+                                </button>
+                            </div>
                         </div>
                     </div>
                 ))}
@@ -298,6 +340,7 @@ export default function RoomsPage() {
                 isOpenProp={isModalOpen}
                 onCloseModal={() => setIsModalOpen(false)}
                 modalTitle={editingRoom ? 'Sửa phòng' : 'Thêm phòng mới'}
+                renderTrigger={() => null}
                 renderContent={() => (
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
