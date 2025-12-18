@@ -152,6 +152,7 @@ export async function GET(req: Request) {
                             customerName: true,
                             location: { select: { name: true } },
                             room: { select: { name: true } },
+                            depositStatus: true,
                         },
                     },
                 },
@@ -164,7 +165,7 @@ export async function GET(req: Request) {
                 'Khách hàng',
                 'Phòng',
                 'Cơ sở',
-                'Loại thanh toán',
+                'Trạng thái cọc',
                 'Phương thức',
                 'Số tiền',
             ]
@@ -175,7 +176,7 @@ export async function GET(req: Request) {
                 p.booking.customerName || '',
                 p.booking.room?.name || '',
                 p.booking.location.name,
-                p.type === 'DEPOSIT' ? 'Cọc' : 'Thanh toán',
+                p.booking.depositStatus,
                 p.method,
                 p.amount.toString(),
             ])

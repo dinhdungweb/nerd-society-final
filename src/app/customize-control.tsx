@@ -10,10 +10,6 @@ import { ThemeContext } from './theme-provider'
 
 const homePages = [
   { name: 'Stays', slug: '/' },
-  { name: 'Real Estates', slug: '/real-estate' },
-  { name: 'Experiences', slug: '/experience' },
-  { name: 'Cars', slug: '/car' },
-  { name: 'Flights', slug: '/flight-categories/all' },
   { name: 'Home 2', slug: '/home-2' },
 ]
 
@@ -42,11 +38,10 @@ const CustomizeControl = () => {
             return (
               <div
                 key={value}
-                className={`flex cursor-pointer items-center rounded-full px-3.5 py-1.5 text-xs font-medium uppercase select-none ${
-                  theme?.themeDir === value
+                className={`flex cursor-pointer items-center rounded-full px-3.5 py-1.5 text-xs font-medium uppercase select-none ${theme?.themeDir === value
                     ? 'bg-black text-white shadow-lg shadow-black/10 dark:bg-neutral-100 dark:text-black'
                     : 'border border-neutral-300 hover:border-neutral-400 dark:border-neutral-700 dark:hover:border-neutral-600'
-                }`}
+                  }`}
                 onClick={() => {
                   theme?.setThemeDir(value)
                 }}
@@ -70,11 +65,10 @@ const CustomizeControl = () => {
               <Link
                 key={home.slug}
                 href={home.slug}
-                className={`flex cursor-pointer items-center rounded-full px-3.5 py-1.5 text-xs font-medium select-none ${
-                  pathname === home.slug
+                className={`flex cursor-pointer items-center rounded-full px-3.5 py-1.5 text-xs font-medium select-none ${pathname === home.slug
                     ? 'bg-black text-white shadow-lg shadow-black/10 dark:bg-neutral-100 dark:text-black'
                     : 'border border-neutral-300 hover:border-neutral-400 dark:border-neutral-700 dark:hover:border-neutral-600'
-                }`}
+                  }`}
               >
                 {home.name}
               </Link>
@@ -92,9 +86,8 @@ const CustomizeControl = () => {
           {({ open }) => (
             <>
               <PopoverButton
-                className={`rounded-xl border border-neutral-200 bg-white p-2.5 shadow-xl hover:bg-neutral-100 focus:outline-hidden dark:border-primary-600 dark:bg-primary-600 dark:hover:bg-primary-700 ${
-                  open ? 'ring-primary-500 focus:ring-2' : ''
-                }`}
+                className={`rounded-xl border border-neutral-200 bg-white p-2.5 shadow-xl hover:bg-neutral-100 focus:outline-hidden dark:border-primary-600 dark:bg-primary-600 dark:hover:bg-primary-700 ${open ? 'ring-primary-500 focus:ring-2' : ''
+                  }`}
               >
                 <CogIcon className="h-8 w-8" />
               </PopoverButton>

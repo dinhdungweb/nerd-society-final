@@ -17,7 +17,7 @@ const SectionBecomeAnAuthor: FC<SectionBecomeAnAuthorProps> = ({
   className = '',
   rightImg = rightImgDemo,
   heading = 'Why did you choose us?',
-  subHeading = 'Join us for a journey full of experiences. With Chisfis, booking resorts, villas, hotels, private homes, and apartments becomes quick, convenient, and easy.',
+  subHeading = 'Đặt chỗ phòng họp, pod làm việc nhanh chóng và tiện lợi. Nerd Society - không gian lý tưởng cho sự tập trung của bạn.',
 }) => {
   return (
     <div className={`relative flex flex-col items-center lg:flex-row ${className}`}>

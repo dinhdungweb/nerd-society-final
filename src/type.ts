@@ -4,7 +4,7 @@ export interface GuestsObject {
   guestInfants?: number
 }
 
-export type ListingType = 'Stays' | 'Experiences' | 'Cars' | 'Flights' | 'RealEstates'
+export type ListingType = 'Stays'
 
 export interface PropertyType {
   name: string
@@ -12,6 +12,6 @@ export interface PropertyType {
   value: string
 }
 
-export interface ClassOfProperties extends PropertyType {}
+export interface ClassOfProperties extends PropertyType { }
 
 export type DateRage = [Date | null, Date | null]

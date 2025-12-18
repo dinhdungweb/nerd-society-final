@@ -3,7 +3,7 @@
 import T from '@/utils/getT'
 import { CloseButton, Popover, PopoverButton, PopoverPanel } from '@headlessui/react'
 import { ChevronDownIcon } from '@heroicons/react/24/solid'
-import { Airplane02Icon, Building03Icon, Car03Icon, HotAirBalloonIcon, House04Icon } from '@hugeicons/core-free-icons'
+import { House04Icon } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -15,31 +15,8 @@ const solutions = [
     href: '/',
     icon: House04Icon,
   },
-  {
-    name: T['Header']['DropdownTravelers']['Real Estate'],
-    description: T['Header']['DropdownTravelers']['estateDescription'],
-    href: '/real-estate',
-    icon: Building03Icon,
-  },
-  {
-    name: T['Header']['DropdownTravelers']['Cars'],
-    description: T['Header']['DropdownTravelers']['carDescription'],
-    href: '/car',
-    icon: Car03Icon,
-  },
-  {
-    name: T['Header']['DropdownTravelers']['Experiences'],
-    description: T['Header']['DropdownTravelers']['experienceDescription'],
-    href: '/experience',
-    icon: HotAirBalloonIcon,
-  },
-  {
-    name: T['Header']['DropdownTravelers']['Flights'],
-    description: T['Header']['DropdownTravelers']['Flight description'],
-    href: '/flight-categories/all',
-    icon: Airplane02Icon,
-  },
 ]
+
 
 export default function DropdownTravelers() {
   const pathName = usePathname()
@@ -67,9 +44,8 @@ export default function DropdownTravelers() {
                   as={Link}
                   key={index}
                   href={item.href}
-                  className={`focus-visible:ring-opacity-50 -m-3 flex items-center rounded-lg p-2 focus:outline-none focus-visible:ring focus-visible:ring-orange-500 ${
-                    isActive ? 'bg-neutral-50 dark:bg-neutral-700' : 'hover:bg-neutral-50 dark:hover:bg-neutral-700'
-                  }`}
+                  className={`focus-visible:ring-opacity-50 -m-3 flex items-center rounded-lg p-2 focus:outline-none focus-visible:ring focus-visible:ring-orange-500 ${isActive ? 'bg-neutral-50 dark:bg-neutral-700' : 'hover:bg-neutral-50 dark:hover:bg-neutral-700'
+                    }`}
                 >
                   <div className="flex size-10 flex-shrink-0 items-center justify-center rounded-md bg-neutral-50 text-primary-500 sm:h-12 sm:w-12 dark:bg-neutral-700 dark:text-primary-200">
                     <HugeiconsIcon icon={item.icon} size={28} color="currentColor" strokeWidth={1.5} />

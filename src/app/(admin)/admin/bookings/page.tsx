@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, Suspense } from 'react'
 import Link from 'next/link'
 import { useSearchParams, useRouter } from 'next/navigation'
 import {
@@ -89,7 +89,7 @@ const statusDots: Record<string, string> = {
 
 const ITEMS_PER_PAGE = 10
 
-export default function BookingsPage() {
+function BookingsContent() {
     const searchParams = useSearchParams()
     const router = useRouter()
 
@@ -407,9 +407,11 @@ export default function BookingsPage() {
                                 className="rounded-xl border border-neutral-300 pl-4 pr-8 py-2.5 text-sm dark:bg-neutral-800 dark:border-neutral-700 dark:text-white"
                             >
                                 <option value="ALL">Tất cả trạng thái</option>
-                                {Object.entries(statusLabels).map(([value, label]) => (
-                                    <option key={value} value={value}>{label}</option>
-                                ))}
+                                <option value="PENDING">Chờ cọc</option>
+                                <option value="CONFIRMED">Đã xác nhận</option>
+                                <option value="IN_PROGRESS">Đang sử dụng</option>
+                                <option value="COMPLETED">Hoàn thành</option>
+                                <option value="CANCELLED">Đã hủy</option>
                             </select>
                         </div>
                     </div>
@@ -547,5 +549,13 @@ export default function BookingsPage() {
                 onRefresh={fetchBookings}
             />
         </div>
+    )
+}
+
+export default function BookingsPage() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <BookingsContent />
+        </Suspense>
     )
 }

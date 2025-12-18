@@ -1,8 +1,5 @@
-import CarCard from '@/components/CarCard'
-import ExperiencesCard from '@/components/ExperiencesCard'
-import PropertyCard from '@/components/PropertyCard'
 import StayCard from '@/components/StayCard'
-import { TCarListing, TExperienceListing, TRealEstateListing, TStayListing } from '@/data/listings'
+import { TStayListing } from '@/data/listings'
 import { Button } from '@/shared/Button'
 import ButtonClose from '@/shared/ButtonClose'
 import { Checkbox, CheckboxField } from '@/shared/Checkbox'
@@ -16,7 +13,7 @@ import { Fragment, useEffect, useState } from 'react'
 
 interface Props {
   currentHoverID: string
-  listings: TStayListing[] | TExperienceListing[] | TRealEstateListing[] | TCarListing[]
+  listings: TStayListing[]
   // The type of listing being displayed on the map.
   // This is used to determine the type of markers and interactions on the map.
   listingType: ListingType
@@ -104,7 +101,7 @@ const AdvancedMarkerCard = ({
   listingType,
   isSelected,
 }: {
-  listing: TExperienceListing | TStayListing | TCarListing | TRealEstateListing
+  listing: TStayListing
   listingType: ListingType
   isSelected?: boolean
   lat: number
@@ -115,11 +112,10 @@ const AdvancedMarkerCard = ({
   return (
     <div className="relative" onMouseEnter={() => setIsOpen(true)} onMouseLeave={() => setIsOpen(false)}>
       <p
-        className={`flex min-w-max items-center justify-center rounded-lg px-2 py-1 text-sm font-semibold shadow-lg transition-colors ${
-          isSelected
+        className={`flex min-w-max items-center justify-center rounded-lg px-2 py-1 text-sm font-semibold shadow-lg transition-colors ${isSelected
             ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900'
             : 'bg-white hover:bg-neutral-900 hover:text-white dark:bg-neutral-900 dark:hover:bg-white dark:hover:text-neutral-900'
-        }`}
+          }`}
       >
         {listing.price}
       </p>
@@ -135,18 +131,6 @@ const AdvancedMarkerCard = ({
       >
         <div className="absolute top-full -left-12 w-64 pt-3">
           {listingType === 'Stays' && <StayCard size="small" data={listing as TStayListing} className="shadow-2xl" />}
-          {listingType === 'Experiences' && (
-            <ExperiencesCard
-              size="small"
-              data={listing as TExperienceListing}
-              ratioClass="aspect-w-12 aspect-h-10"
-              className="rounded-3xl bg-white shadow-2xl dark:bg-neutral-900"
-            />
-          )}
-          {listingType === 'Cars' && <CarCard size="small" data={listing as TCarListing} className="shadow-2xl" />}
-          {listingType === 'RealEstates' && (
-            <PropertyCard data={listing as TRealEstateListing} className="shadow-2xl" />
-          )}
         </div>
       </Transition>
     </div>

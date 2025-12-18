@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import {
     AreaChart,
     Area,
@@ -17,6 +18,12 @@ interface RevenueChartProps {
 }
 
 export function RevenueChart({ data }: RevenueChartProps) {
+    const [mounted, setMounted] = useState(false)
+
+    useEffect(() => {
+        setMounted(true)
+    }, [])
+
     const formatCurrency = (value: number) => {
         if (value >= 1000000) {
             return `${(value / 1000000).toFixed(1)}M`
@@ -25,6 +32,10 @@ export function RevenueChart({ data }: RevenueChartProps) {
             return `${(value / 1000).toFixed(0)}K`
         }
         return value.toString()
+    }
+
+    if (!mounted) {
+        return <div className="h-72 w-full animate-pulse rounded-lg bg-neutral-100 dark:bg-neutral-800" />
     }
 
     return (
@@ -81,6 +92,16 @@ interface BookingChartProps {
 }
 
 export function BookingChart({ data }: BookingChartProps) {
+    const [mounted, setMounted] = useState(false)
+
+    useEffect(() => {
+        setMounted(true)
+    }, [])
+
+    if (!mounted) {
+        return <div className="h-72 w-full animate-pulse rounded-lg bg-neutral-100 dark:bg-neutral-800" />
+    }
+
     return (
         <div className="h-72 w-full" style={{ minHeight: 288 }}>
             <ResponsiveContainer width="100%" height="100%" minWidth={0}>
@@ -122,6 +143,16 @@ interface RoomUsageChartProps {
 }
 
 export function RoomUsageChart({ data }: RoomUsageChartProps) {
+    const [mounted, setMounted] = useState(false)
+
+    useEffect(() => {
+        setMounted(true)
+    }, [])
+
+    if (!mounted) {
+        return <div className="h-72 w-full animate-pulse rounded-lg bg-neutral-100 dark:bg-neutral-800" />
+    }
+
     return (
         <div className="h-72 w-full" style={{ minHeight: 288 }}>
             <ResponsiveContainer width="100%" height="100%" minWidth={0}>

@@ -243,6 +243,7 @@ export default function CreateBookingModal({ open, setOpen, onSuccess }: CreateB
                                                     <input
                                                         type="date"
                                                         required
+                                                        min={new Date().toISOString().split('T')[0]}
                                                         className="w-full rounded-lg border-neutral-300 text-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-neutral-800 dark:border-neutral-700"
                                                         value={formData.date}
                                                         onChange={e => setFormData({ ...formData, date: e.target.value })}

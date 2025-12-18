@@ -3,10 +3,10 @@ import { Metadata } from 'next'
 import { ApplicationLayout } from '../application-layout'
 
 export const metadata: Metadata = {
-  title: 'Home',
+  title: 'Nerd Society',
   description:
-    'Chisfis is a modern and elegant template for Next.js, Tailwind CSS, and TypeScript. It is designed to be simple and easy to use, with a focus on performance and accessibility.',
-  keywords: ['Next.js', 'Tailwind CSS', 'TypeScript', 'Chisfis', 'Travel', 'E-commerce', 'Booking', 'Cars'],
+    'Nerd Society - Không gian làm việc và học tập chuyên nghiệp dành cho bạn. Đặt phòng họp, pod làm việc nhanh chóng.',
+  keywords: ['Nerd Society', 'Coworking', 'Booking', 'Meeting Room', 'Pod', 'Study Space'],
 }
 
 export default function Layout({ children, params }: { children: React.ReactNode; params: any }) {
