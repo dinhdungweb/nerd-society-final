@@ -190,6 +190,11 @@ export async function POST(req: Request) {
             })
         }
 
+        // Create notification for new booking created by staff
+        import('@/lib/notifications').then(({ notifyNewBooking }) => {
+            notifyNewBooking(booking.bookingCode, customerName, booking.id).catch(console.error)
+        })
+
         return NextResponse.json(booking)
 
     } catch (error) {

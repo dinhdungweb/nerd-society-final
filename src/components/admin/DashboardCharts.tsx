@@ -28,8 +28,8 @@ export function RevenueChart({ data }: RevenueChartProps) {
     }
 
     return (
-        <div className="h-72 w-full">
-            <ResponsiveContainer width="100%" height="100%">
+        <div className="h-72 w-full" style={{ minHeight: 288 }}>
+            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                     <defs>
                         <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
@@ -82,8 +82,8 @@ interface BookingChartProps {
 
 export function BookingChart({ data }: BookingChartProps) {
     return (
-        <div className="h-72 w-full">
-            <ResponsiveContainer width="100%" height="100%">
+        <div className="h-72 w-full" style={{ minHeight: 288 }}>
+            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" className="dark:stroke-neutral-700" />
                     <XAxis
@@ -123,8 +123,8 @@ interface RoomUsageChartProps {
 
 export function RoomUsageChart({ data }: RoomUsageChartProps) {
     return (
-        <div className="h-72 w-full">
-            <ResponsiveContainer width="100%" height="100%">
+        <div className="h-72 w-full" style={{ minHeight: 288 }}>
+            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <BarChart data={data} layout="vertical" margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" className="dark:stroke-neutral-700" horizontal={false} />
                     <XAxis type="number" axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 12 }} />

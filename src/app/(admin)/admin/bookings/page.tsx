@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
+import { useSearchParams, useRouter } from 'next/navigation'
 import {
     CheckCircleIcon,
     ClockIcon,
@@ -89,6 +90,9 @@ const statusDots: Record<string, string> = {
 const ITEMS_PER_PAGE = 10
 
 export default function BookingsPage() {
+    const searchParams = useSearchParams()
+    const router = useRouter()
+
     const [bookings, setBookings] = useState<Booking[]>([])
     const [filteredBookings, setFilteredBookings] = useState<Booking[]>([])
     const [loading, setLoading] = useState(true)
@@ -113,6 +117,20 @@ export default function BookingsPage() {
         fetchRooms()
         fetchLocations()
     }, [])
+
+    // Handle query param `id` to auto-open booking detail modal from notification
+    useEffect(() => {
+        const bookingId = searchParams.get('id')
+        if (bookingId && bookings.length > 0) {
+            const targetBooking = bookings.find(b => b.id === bookingId)
+            if (targetBooking) {
+                setSelectedBooking(targetBooking)
+                setDetailModalOpen(true)
+                // Clear the query param after opening modal
+                router.replace('/admin/bookings', { scroll: false })
+            }
+        }
+    }, [searchParams, bookings, router])
 
     const fetchBookings = async () => {
         try {

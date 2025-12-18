@@ -178,6 +178,12 @@ export async function POST(
                     status: 'CANCELLED'
                 }
             })
+
+            // Create notification for booking cancelled
+            import('@/lib/notifications').then(({ notifyBookingCancelled }) => {
+                notifyBookingCancelled(booking.bookingCode, booking.customerName || 'Khách', booking.id).catch(console.error)
+            })
+
             return NextResponse.json(updatedBooking)
         }
 

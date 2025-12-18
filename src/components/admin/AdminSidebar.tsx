@@ -2,7 +2,6 @@
 
 import {
     CalendarDaysIcon,
-    ChartBarIcon,
     Cog6ToothIcon,
     CubeIcon,
     Squares2X2Icon,
@@ -70,7 +69,6 @@ const navigationGroups: NavGroup[] = [
             { name: 'Nerd Coin', href: '/admin/nerdcoin', icon: SparklesIcon, permissionKey: 'canViewNerdCoin' },
             { name: 'Nhân viên', href: '/admin/staff', icon: UserGroupIcon, adminOnly: true },
             { name: 'Phân quyền', href: '/admin/permissions', icon: ShieldCheckIcon, adminOnly: true },
-            { name: 'Reports', href: '/admin/reports', icon: ChartBarIcon, permissionKey: 'canViewReports' },
             { name: 'Settings', href: '/admin/settings', icon: Cog6ToothIcon, permissionKey: 'canViewSettings' },
         ]
     },

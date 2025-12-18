@@ -129,7 +129,12 @@ export default function ServiceSelector({
                         {/* Nerd Coin badge */}
                         {service.nerdCoinReward > 0 && (
                             <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-yellow-100 px-3 py-1 text-xs font-medium text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
-                                🪙 +{service.nerdCoinReward} Nerd Coin
+                                <svg className="size-4" viewBox="0 0 24 24" fill="currentColor">
+                                    <circle cx="12" cy="12" r="10" fill="currentColor" opacity="0.2" />
+                                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5" fill="none" />
+                                    <text x="12" y="16" textAnchor="middle" fontSize="10" fontWeight="bold" fill="currentColor">N</text>
+                                </svg>
+                                +{service.nerdCoinReward} Nerd Coin
                             </div>
                         )}
 

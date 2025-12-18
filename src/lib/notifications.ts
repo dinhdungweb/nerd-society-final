@@ -106,3 +106,14 @@ export async function notifyEndingSoon(bookingCode: string, customerName: string
         bookingId,
     })
 }
+
+export async function notifyBookingCancelled(bookingCode: string, customerName: string, bookingId: string) {
+    return createNotification({
+        type: 'BOOKING_CANCELLED',
+        title: 'Booking đã hủy',
+        message: `Booking #${bookingCode} của ${customerName} đã bị hủy`,
+        link: `/admin/bookings?id=${bookingId}`,
+        bookingId,
+    })
+}
+

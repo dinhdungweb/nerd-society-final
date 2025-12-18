@@ -402,8 +402,13 @@ export default function BookingFormV2({
                         </span>
                     </div>
                     {priceInfo.nerdCoinReward > 0 && (
-                        <div className="mt-2 text-sm text-yellow-700 dark:text-yellow-400">
-                            🪙 Nhận {priceInfo.nerdCoinReward} Nerd Coin khi check-in
+                        <div className="mt-2 flex items-center gap-1.5 text-sm text-yellow-700 dark:text-yellow-400">
+                            <svg className="size-4" viewBox="0 0 24 24" fill="currentColor">
+                                <circle cx="12" cy="12" r="10" fill="currentColor" opacity="0.2" />
+                                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5" fill="none" />
+                                <text x="12" y="16" textAnchor="middle" fontSize="10" fontWeight="bold" fill="currentColor">N</text>
+                            </svg>
+                            Nhận {priceInfo.nerdCoinReward} Nerd Coin khi check-in
                         </div>
                     )}
                 </div>
