@@ -46,7 +46,7 @@ export default function TimeSelect({
                     leaveFrom="opacity-100"
                     leaveTo="opacity-0"
                 >
-                    <Listbox.Options className="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-xl border border-neutral-200 bg-white py-1 shadow-lg ring-1 ring-black/5 focus:outline-none dark:border-neutral-700 dark:bg-neutral-800">
+                    <Listbox.Options className="absolute z-20 mt-1 max-h-60 w-full overflow-auto scrollbar-thin rounded-xl border border-neutral-200 bg-white py-1 shadow-lg ring-1 ring-black/5 focus:outline-none dark:border-neutral-700 dark:bg-neutral-800">
                         {options.map((option) => (
                             <Listbox.Option
                                 key={option.value}

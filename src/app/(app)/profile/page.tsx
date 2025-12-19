@@ -1,6 +1,6 @@
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { CalendarDaysIcon, MapPinIcon } from '@heroicons/react/24/outline'
+import { CalendarDaysIcon, MapPinIcon, ClockIcon } from '@heroicons/react/24/outline'
 import { getServerSession } from 'next-auth'
 import Link from 'next/link'
 

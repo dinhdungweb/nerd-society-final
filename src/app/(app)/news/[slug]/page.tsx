@@ -236,7 +236,7 @@ export default async function PostDetailPage({ params }: PageProps) {
                                 {/* Content */}
                                 <div
                                     id="post-content"
-                                    className="prose prose-lg dark:prose-invert max-w-none prose-headings:font-bold prose-a:text-primary-600 dark:prose-a:text-primary-400"
+                                    className="prose prose-sm dark:prose-invert max-w-none prose-headings:font-bold prose-a:text-primary-600 dark:prose-a:text-primary-400"
                                     dangerouslySetInnerHTML={{ __html: post.content }}
                                 />
                             </div>

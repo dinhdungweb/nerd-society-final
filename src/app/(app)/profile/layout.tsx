@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
+import ProfileSidebar from '@/components/profile/ProfileSidebar'
 
 export default async function ProfileLayout({ children }: { children: React.ReactNode }) {
     const session = await getServerSession(authOptions)
@@ -20,15 +21,7 @@ export default async function ProfileLayout({ children }: { children: React.Reac
                 <div className="grid gap-8 lg:grid-cols-4">
                     {/* Sidebar */}
                     <div className="space-y-1 lg:col-span-1">
-                        <Link href="/profile" className="block rounded-lg px-4 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800">
-                            Lịch sử đặt lịch
-                        </Link>
-                        <Link href="/profile/nerdcoin" className="block rounded-lg px-4 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800">
-                            Nerd Coin
-                        </Link>
-                        <Link href="/profile/settings" className="block rounded-lg px-4 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800">
-                            Cài đặt tài khoản
-                        </Link>
+                        <ProfileSidebar />
                     </div>
 
                     {/* Content */}
