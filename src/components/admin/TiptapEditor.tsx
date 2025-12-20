@@ -348,7 +348,7 @@ export default function TiptapEditor({ value, onChange, placeholder }: TiptapEdi
                                 editor.isActive('heading', { level: 3 }) ? 3 :
                                     editor.isActive('heading', { level: 4 }) ? 4 : 0
                     }
-                    className="px-2 py-1.5 rounded-lg text-sm bg-white dark:bg-neutral-700 border border-neutral-200 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300"
+                    className="appearance-none pl-3 pr-8 py-1.5 rounded-lg text-sm bg-white dark:bg-neutral-700 border border-neutral-200 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300 cursor-pointer bg-[url('data:image/svg+xml;charset=UTF-8,%3csvg%20xmlns%3d%22http%3a%2f%2fwww.w3.org%2f2000%2fsvg%22%20viewBox%3d%220%200%2020%2020%22%20fill%3d%22%236b7280%22%3e%3cpath%20fill-rule%3d%22evenodd%22%20d%3d%22M5.293%207.293a1%201%200%20011.414%200L10%2010.586l3.293-3.293a1%201%200%20111.414%201.414l-4%204a1%201%200%2001-1.414%200l-4-4a1%201%200%20010-1.414z%22%20clip-rule%3d%22evenodd%22%2f%3e%3c%2fsvg%3e')] bg-[length:1.25rem] bg-[right_0.25rem_center] bg-no-repeat"
                 >
                     <option value={0}>Văn bản</option>
                     <option value={1}>Tiêu đề 1</option>
