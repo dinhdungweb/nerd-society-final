@@ -180,7 +180,7 @@ export default function NewsSection() {
                 )}
 
                 {/* View all link */}
-                <div className="mt-10 text-center">
+                <div className="mt-2 text-center">
                     <Link
                         href="/news"
                         className="inline-flex items-center gap-2 text-primary-600 dark:text-primary-400 font-medium hover:underline"
