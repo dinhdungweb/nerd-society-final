@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 
 export async function GET(req: Request) {
     try {
@@ -31,6 +32,9 @@ export async function POST(req: Request) {
         })
 
         await Promise.all(updates)
+
+        revalidatePath('/')
+        revalidatePath('/(app)/(home-pages)', 'page') // Try specific path just in case
 
         return NextResponse.json({ message: 'Settings updated successfully' })
     } catch (error) {

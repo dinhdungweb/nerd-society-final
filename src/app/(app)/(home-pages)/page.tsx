@@ -11,6 +11,8 @@ import {
 } from '@/components/landing'
 import { Metadata } from 'next'
 
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: 'Nerd Society | Không gian học tập dành cho Gen Z',
   description:
