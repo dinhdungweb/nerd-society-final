@@ -17,6 +17,10 @@ export const DEFAULT_STAFF_PERMISSIONS = {
     canViewNerdCoin: false,
     canViewReports: false,
     canViewSettings: false,
+    // New permissions
+    canViewStaff: false,
+    canViewAuditLog: false,
+    canViewEmailTemplates: false,
 }
 
 export type StaffPermissions = typeof DEFAULT_STAFF_PERMISSIONS
@@ -47,6 +51,7 @@ export const PERMISSION_ROUTE_MAP: Record<string, keyof StaffPermissions> = {
     '/admin/customers': 'canViewCustomers',
     '/admin/rooms': 'canViewRooms',
     '/admin/services': 'canViewServices',
+    '/admin/combos': 'canViewServices', // Combos use same permission as services
     '/admin/locations': 'canViewLocations',
     '/admin/posts': 'canViewPosts',
     '/admin/gallery': 'canViewPosts',
@@ -56,6 +61,10 @@ export const PERMISSION_ROUTE_MAP: Record<string, keyof StaffPermissions> = {
     '/admin/reports': 'canViewReports',
     '/admin/settings': 'canViewSettings',
     '/admin/permissions': 'canViewSettings',
+    // New routes
+    '/admin/staff': 'canViewStaff',
+    '/admin/audit-log': 'canViewAuditLog',
+    '/admin/email-templates': 'canViewEmailTemplates',
 }
 
 // Check if a route is allowed for staff based on permissions

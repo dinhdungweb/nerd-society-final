@@ -20,6 +20,10 @@ interface Permissions {
     canViewNerdCoin: boolean
     canViewReports: boolean
     canViewSettings: boolean
+    // New permissions
+    canViewStaff: boolean
+    canViewAuditLog: boolean
+    canViewEmailTemplates: boolean
 }
 
 type RoleKey = 'MANAGER' | 'STAFF' | 'CONTENT_EDITOR'
@@ -55,12 +59,16 @@ const permissionLabels: Record<keyof Permissions, { label: string; description: 
     canCheckOut: { label: 'Check-out', description: 'Thực hiện check-out khách', group: 'Đặt lịch' },
     canViewCustomers: { label: 'Xem Khách hàng', description: 'Xem danh sách khách hàng', group: 'Khách hàng' },
     canViewRooms: { label: 'Xem Phòng', description: 'Xem và quản lý phòng', group: 'Quản lý' },
-    canViewServices: { label: 'Xem Dịch vụ', description: 'Xem và quản lý dịch vụ', group: 'Quản lý' },
+    canViewServices: { label: 'Xem Dịch vụ', description: 'Xem và quản lý dịch vụ, combo', group: 'Quản lý' },
     canViewLocations: { label: 'Xem Cơ sở', description: 'Xem và quản lý cơ sở', group: 'Quản lý' },
     canViewPosts: { label: 'Xem Nội dung', description: 'Quản lý tin tức, gallery, media', group: 'Nội dung' },
     canViewNerdCoin: { label: 'Xem Nerd Coin', description: 'Quản lý Nerd Coin khách hàng', group: 'Hệ thống' },
     canViewReports: { label: 'Xem Reports', description: 'Xem báo cáo doanh thu', group: 'Hệ thống' },
     canViewSettings: { label: 'Xem Settings', description: 'Truy cập cài đặt hệ thống', group: 'Hệ thống' },
+    // New permissions
+    canViewStaff: { label: 'Xem Nhân viên', description: 'Quản lý danh sách nhân viên', group: 'Hệ thống' },
+    canViewAuditLog: { label: 'Xem Lịch sử', description: 'Xem lịch sử thao tác (Audit Log)', group: 'Hệ thống' },
+    canViewEmailTemplates: { label: 'Xem Email Templates', description: 'Quản lý mẫu email', group: 'Hệ thống' },
 }
 
 export default function PermissionsPage() {
@@ -176,8 +184,8 @@ export default function PermissionsPage() {
                             key={role}
                             onClick={() => setActiveRole(role)}
                             className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-medium transition-all ${isActive
-                                    ? 'bg-white text-neutral-900 shadow-sm dark:bg-neutral-700 dark:text-white'
-                                    : 'text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white'
+                                ? 'bg-white text-neutral-900 shadow-sm dark:bg-neutral-700 dark:text-white'
+                                : 'text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white'
                                 }`}
                         >
                             <Icon className="size-5" />
