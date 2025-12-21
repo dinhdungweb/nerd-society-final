@@ -29,139 +29,142 @@ const defaultTemplates = [
     { name: 'checkin_reminder', label: 'Nhắc check-in' },
 ]
 
+// SVG Icons for Prebuilt Templates
+const PREBUILT_ICONS = {
+    calendar: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 6px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>',
+    clock: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 6px;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>',
+    mapPin: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 6px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>',
+    check: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9B7850" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 8px;"><polyline points="20 6 9 17 4 12"></polyline></svg>',
+    info: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 6px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>',
+    bell: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 6px;"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>'
+}
+
+const getBaseTemplateString = (content: string) => `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #FAF5EB; margin: 0; padding: 20px 0; }
+        .card { background-color: #ffffff; border-radius: 20px; padding: 40px; border: 1px solid #EBE1D2; max-width: 600px; margin: 0 auto; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .h1 { color: #28241E; font-size: 24px; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; }
+        .p { color: #554E41; font-size: 16px; line-height: 1.6; margin-bottom: 24px; }
+        .info-box { background-color: #FDFBFA; border-radius: 14px; padding: 24px; border: 1px solid #F5F2EB; margin-bottom: 24px; }
+        .info-header { font-size: 13px; font-weight: 700; color: #9B7850; text-transform: uppercase; margin-bottom: 16px; display: flex; align-items: center; }
+        .info-item { margin-bottom: 12px; font-size: 15px; display: flex; align-items: center; color: #28241E; }
+        .info-label { color: #A09081; font-weight: 500; width: 120px; flex-shrink: 0; }
+        .button { display: inline-block; background-color: #9B7850; color: #ffffff !important; padding: 16px 32px; border-radius: 14px; text-decoration: none; font-weight: 600; text-align: center; }
+        .footer { text-align: center; margin-top: 40px; color: #A09081; font-size: 13px; }
+        @media (max-width: 600px) {
+            body { padding: 10px 0; }
+            .card { border-radius: 0; padding: 32px 20px; border-left: none; border-right: none; }
+            .info-item { flex-wrap: wrap; }
+            .info-label { width: 100%; margin-bottom: 4px; }
+        }
+    </style>
+</head>
+<body>
+    <div style="text-align: center; margin-bottom: 30px; padding: 0 20px;">
+        <div style="font-size: 24px; font-weight: 800; color: #9B7850; letter-spacing: 2px;">NERD SOCIETY</div>
+        <div style="font-size: 12px; color: #786E5F; letter-spacing: 4px; border-top: 1px solid #EBE1D2; display: inline-block; padding-top: 5px;">STUDY & WORK SPACE</div>
+    </div>
+    <div class="card">${content}</div>
+    <div class="footer" style="padding: 0 20px;">
+        <p>&copy; ${new Date().getFullYear()} Nerd Society. All rights reserved.</p>
+        <p>Hotline: 036 848 3689</p>
+    </div>
+</body>
+</html>
+`
+
 // Pre-built templates for each email type
 const prebuiltTemplates: Record<string, { subject: string; content: string }> = {
     booking_confirmation: {
         subject: '[Nerd Society] Xác nhận đặt lịch #{{bookingCode}}',
-        content: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-  <div style="background: #4f46e5; color: white; padding: 32px; text-align: center;">
-    <h1 style="margin: 0; font-size: 24px;">Đặt lịch thành công! ✅</h1>
-  </div>
-  <div style="padding: 32px; background: #f9fafb;">
-    <p style="font-size: 16px;">Xin chào <strong>{{customerName}}</strong>,</p>
-    <p>Đặt lịch của bạn đã được xác nhận thành công!</p>
-    
-    <div style="background: white; border-radius: 12px; padding: 24px; margin: 24px 0; border-left: 4px solid #4f46e5;">
-      <h3 style="margin-top: 0; color: #4f46e5;">📝 Thông tin đặt lịch</h3>
-      <p><strong>Mã đặt lịch:</strong> {{bookingCode}}</p>
-      <p><strong>Cơ sở:</strong> {{locationName}}</p>
-      <p><strong>Dịch vụ:</strong> {{serviceName}}</p>
-      <p><strong>Thời gian:</strong> {{date}} | {{startTime}} - {{endTime}}</p>
-      <p><strong>Tổng tiền:</strong> {{amount}}</p>
-    </div>
-    
-    <p style="text-align: center;">
-      <a href="{{bookingUrl}}" style="display: inline-block; background: #4f46e5; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold;">Xem chi tiết đặt lịch</a>
-    </p>
-  </div>
-  <div style="text-align: center; padding: 24px; color: #6b7280; font-size: 12px;">
-    <p>Nerd Society - Study & Work Space</p>
-    <p>Hotline: 036 848 3689</p>
-  </div>
-</div>`
+        content: getBaseTemplateString(`
+            <h1 class="h1">${PREBUILT_ICONS.check}Đặt lịch thành công!</h1>
+            <p class="p">Xin chào <strong>{{customerName}}</strong>,</p>
+            <p class="p">Đặt lịch của bạn đã được xác nhận. Chúng tôi rất mong chờ được đón tiếp bạn.</p>
+            
+            <div class="info-box">
+                <div class="info-header">${PREBUILT_ICONS.info}Chi tiết đặt lịch</div>
+                <div class="info-item"><span class="info-label">Mã đặt lịch</span><strong>#{{bookingCode}}</strong></div>
+                <div class="info-item"><span class="info-label">Cơ sở</span><strong>{{locationName}}</strong></div>
+                <div class="info-item"><span class="info-label">Dịch vụ</span><strong>{{serviceName}}</strong></div>
+                <div class="info-item"><span class="info-label">Thời gian</span><strong>{{date}} | {{startTime}} - {{endTime}}</strong></div>
+                <div class="info-item"><span class="info-label">Tổng tiền</span><strong style="color: #9B7850; font-size: 18px;">{{amount}}</strong></div>
+            </div>
+
+            <div style="text-align: center; margin-top: 32px;">
+                <a href="{{bookingUrl}}" class="button">Quản lý lịch hẹn</a>
+            </div>
+        `)
     },
     booking_pending: {
         subject: '[Nerd Society] Tiếp nhận đặt lịch #{{bookingCode}}',
-        content: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-  <div style="background: #f59e0b; color: white; padding: 32px; text-align: center;">
-    <h1 style="margin: 0; font-size: 24px;">Đã nhận yêu cầu đặt lịch! 📩</h1>
-  </div>
-  <div style="padding: 32px; background: #f9fafb;">
-    <p style="font-size: 16px;">Xin chào <strong>{{customerName}}</strong>,</p>
-    <p>Chúng tôi đã nhận được yêu cầu đặt lịch của bạn. Vui lòng thanh toán cọc để hoàn tất.</p>
-    
-    <div style="background: #fef3c7; border-radius: 12px; padding: 24px; margin: 24px 0; border-left: 4px solid #f59e0b;">
-      <h3 style="margin-top: 0; color: #d97706;">📝 Thông tin đặt lịch</h3>
-      <p><strong>Mã đặt lịch:</strong> {{bookingCode}}</p>
-      <p><strong>Cơ sở:</strong> {{locationName}}</p>
-      <p><strong>Dịch vụ:</strong> {{serviceName}}</p>
-      <p><strong>Thời gian:</strong> {{date}} | {{startTime}} - {{endTime}}</p>
-      <p><strong>Tổng tiền:</strong> {{amount}}</p>
-    </div>
-    
-    <p style="text-align: center;">
-      <a href="{{bookingUrl}}" style="display: inline-block; background: #f59e0b; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold;">Thanh toán ngay</a>
-    </p>
-  </div>
-  <div style="text-align: center; padding: 24px; color: #6b7280; font-size: 12px;">
-    <p>Nerd Society - Study & Work Space</p>
-  </div>
-</div>`
+        content: getBaseTemplateString(`
+            <h1 class="h1">Đã nhận yêu cầu đặt lịch</h1>
+            <p class="p">Xin chào <strong>{{customerName}}</strong>,</p>
+            <p class="p">Chúng tôi đã nhận được yêu cầu của bạn. Vui lòng hoàn tất thanh toán để giữ chỗ tốt nhất.</p>
+            
+            <div class="info-box">
+                <div class="info-header">${PREBUILT_ICONS.info}Thông tin chờ thanh toán</div>
+                <div class="info-item"><span class="info-label">Mã đặt lịch</span><strong>#{{bookingCode}}</strong></div>
+                <div class="info-item"><span class="info-label">Dịch vụ</span><strong>{{serviceName}}</strong></div>
+                <div class="info-item"><span class="info-label">Thời gian</span><strong>{{date}} | {{startTime}} - {{endTime}}</strong></div>
+                <div class="info-item"><span class="info-label">Cần thanh toán</span><strong style="color: #9B7850; font-size: 18px;">{{amount}}</strong></div>
+            </div>
+
+            <div style="text-align: center; margin-top: 32px;">
+                <a href="{{bookingUrl}}" class="button">Thanh toán ngay</a>
+            </div>
+        `)
     },
     password_reset: {
-        subject: '[Nerd Society] Yêu cầu đặt lại mật khẩu',
-        content: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-  <div style="background: #4f46e5; color: white; padding: 32px; text-align: center;">
-    <h1 style="margin: 0; font-size: 24px;">Đặt lại mật khẩu 🔐</h1>
-  </div>
-  <div style="padding: 32px; background: #f9fafb;">
-    <p>Xin chào,</p>
-    <p>Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn.</p>
-    <p>Đường dẫn có hiệu lực trong <strong>1 giờ</strong>.</p>
-    
-    <p style="text-align: center; margin: 32px 0;">
-      <a href="{{resetUrl}}" style="display: inline-block; background: #4f46e5; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold;">Đặt lại mật khẩu</a>
-    </p>
-    
-    <p style="color: #6b7280; font-size: 14px;">Nếu bạn không yêu cầu thay đổi này, vui lòng bỏ qua email này.</p>
-  </div>
-  <div style="text-align: center; padding: 24px; color: #6b7280; font-size: 12px;">
-    <p>Nerd Society - Study & Work Space</p>
-  </div>
-</div>`
+        subject: '[Nerd Society] Khôi phục mật khẩu',
+        content: getBaseTemplateString(`
+            <h1 class="h1">Đặt lại mật khẩu</h1>
+            <p class="p">Chào bạn, chúng tôi nhận được yêu cầu thay đổi mật khẩu cho tài khoản của bạn.</p>
+            <p class="p">Vui lòng nhấn vào nút bên dưới để tiến hành đặt mới (Link có hiệu lực trong 1 giờ):</p>
+            
+            <div style="text-align: center; margin: 40px 0;">
+                <a href="{{resetUrl}}" class="button">Khôi phục mật khẩu</a>
+            </div>
+
+            <p class="p" style="font-size: 14px; color: #A09081; text-align: center;">Nếu bạn không yêu cầu thay đổi này, hãy bỏ qua email này.</p>
+        `)
     },
     booking_cancelled: {
         subject: '[Nerd Society] Đặt lịch #{{bookingCode}} đã bị hủy',
-        content: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-  <div style="background: #ef4444; color: white; padding: 32px; text-align: center;">
-    <h1 style="margin: 0; font-size: 24px;">Đặt lịch đã bị hủy ❌</h1>
-  </div>
-  <div style="padding: 32px; background: #f9fafb;">
-    <p style="font-size: 16px;">Xin chào <strong>{{customerName}}</strong>,</p>
-    <p>Đặt lịch của bạn đã bị hủy.</p>
-    
-    <div style="background: #fef2f2; border-radius: 12px; padding: 24px; margin: 24px 0; border-left: 4px solid #ef4444;">
-      <h3 style="margin-top: 0; color: #dc2626;">📝 Thông tin đặt lịch đã hủy</h3>
-      <p><strong>Mã đặt lịch:</strong> {{bookingCode}}</p>
-      <p><strong>Cơ sở:</strong> {{locationName}}</p>
-      <p><strong>Dịch vụ:</strong> {{serviceName}}</p>
-      <p><strong>Thời gian:</strong> {{date}} | {{startTime}} - {{endTime}}</p>
-    </div>
-    
-    <p>Nếu bạn đã thanh toán cọc, vui lòng liên hệ để được hoàn tiền.</p>
-    <p><strong>Hotline:</strong> 036 848 3689</p>
-  </div>
-  <div style="text-align: center; padding: 24px; color: #6b7280; font-size: 12px;">
-    <p>Nerd Society - Study & Work Space</p>
-  </div>
-</div>`
+        content: getBaseTemplateString(`
+            <h1 class="h1" style="color: #dc2626;">Thông báo hủy lịch hẹn</h1>
+            <p class="p">Chào <strong>{{customerName}}</strong>, đặt lịch #{{bookingCode}} của bạn đã bị hủy.</p>
+            
+            <div class="info-box" style="border-left: 4px solid #dc2626;">
+                <div class="info-header" style="color: #dc2626;">${PREBUILT_ICONS.info}Thông tin lịch đã hủy</div>
+                <div class="info-item"><span class="info-label">Dịch vụ</span><strong>{{serviceName}}</strong></div>
+                <div class="info-item"><span class="info-label">Thời gian</span><strong>{{date}} | {{startTime}} - {{endTime}}</strong></div>
+            </div>
+
+            <p class="p">Nếu bạn đã thanh toán cọc, vui lòng liên hệ hotline 036 848 3689 để được hỗ trợ hoàn tiền.</p>
+        `)
     },
     checkin_reminder: {
-        subject: '[Nerd Society] Nhắc nhở check-in #{{bookingCode}}',
-        content: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-  <div style="background: #10b981; color: white; padding: 32px; text-align: center;">
-    <h1 style="margin: 0; font-size: 24px;">Sắp đến giờ check-in! ⏰</h1>
-  </div>
-  <div style="padding: 32px; background: #f9fafb;">
-    <p style="font-size: 16px;">Xin chào <strong>{{customerName}}</strong>,</p>
-    <p>Đây là lời nhắc cho đặt lịch sắp tới của bạn. Đừng quên đến đúng giờ nhé! 😊</p>
-    
-    <div style="background: #d1fae5; border-radius: 12px; padding: 24px; margin: 24px 0; border-left: 4px solid #10b981;">
-      <h3 style="margin-top: 0; color: #059669;">📅 Thông tin đặt lịch</h3>
-      <p><strong>Mã đặt lịch:</strong> {{bookingCode}}</p>
-      <p><strong>Cơ sở:</strong> {{locationName}}</p>
-      <p><strong>Dịch vụ:</strong> {{serviceName}}</p>
-      <p><strong>Thời gian:</strong> {{date}} | {{startTime}} - {{endTime}}</p>
-    </div>
-    
-    <p style="text-align: center;">
-      <a href="{{bookingUrl}}" style="display: inline-block; background: #10b981; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold;">Xem chi tiết</a>
-    </p>
-  </div>
-  <div style="text-align: center; padding: 24px; color: #6b7280; font-size: 12px;">
-    <p>Nerd Society - Study & Work Space</p>
-  </div>
-</div>`
+        subject: '[Nerd Society] Hẹn gặp bạn tại #{{locationName}}',
+        content: getBaseTemplateString(`
+            <h1 class="h1">${PREBUILT_ICONS.bell}Nhắc nhở lịch hẹn sắp tới</h1>
+            <p class="p">Chào <strong>{{customerName}}</strong>, chúng tôi rất mong chờ được đón tiếp bạn hôm nay.</p>
+            
+            <div class="info-box" style="border-left: 4px solid #9B7850;">
+                <div class="info-header">${PREBUILT_ICONS.calendar}Thông tin lịch hẹn</div>
+                <div class="info-item"><span class="info-label">Cơ sở</span><strong>{{locationName}}</strong></div>
+                <div class="info-item"><span class="info-label">Thời gian</span><strong>{{startTime}} - {{endTime}}</strong></div>
+            </div>
+
+            <div style="text-align: center; margin-top: 32px;">
+                <a href="{{bookingUrl}}" class="button">Xem hướng dẫn chỉ đường</a>
+            </div>
+        `)
     },
 }
 
