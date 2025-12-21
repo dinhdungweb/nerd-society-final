@@ -15,11 +15,15 @@ import {
     CalendarDaysIcon,
     PlusIcon,
     BanknotesIcon,
+    ArrowPathIcon,
 } from '@heroicons/react/24/outline'
 import BookingDetailModal from '@/components/admin/bookings/BookingDetailModal'
 import CreateBookingModal from '@/components/admin/bookings/CreateBookingModal'
 import BookingCalendarView from '@/components/admin/bookings/BookingCalendarView'
 import { TableCellsIcon, CalendarIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline'
+import useSWR from 'swr'
+
+const fetcher = (url: string) => fetch(url).then(res => res.json())
 
 interface Room {
     id: string
@@ -112,67 +116,42 @@ function BookingsContent() {
     const [detailModalOpen, setDetailModalOpen] = useState(false)
     const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null)
 
-    useEffect(() => {
-        fetchBookings()
-        fetchRooms()
-        fetchLocations()
-    }, [])
-
-    // Handle query param `id` to auto-open booking detail modal from notification
-    useEffect(() => {
-        const bookingId = searchParams.get('id')
-        if (bookingId && bookings.length > 0) {
-            const targetBooking = bookings.find(b => b.id === bookingId)
-            if (targetBooking) {
-                setSelectedBooking(targetBooking)
-                setDetailModalOpen(true)
-                // Clear the query param after opening modal
-                router.replace('/admin/bookings', { scroll: false })
-            }
+    // 1. Fetch bookings using SWR
+    const { data: bookingsData, error: bookingsError, mutate: mutateBookings, isValidating } = useSWR<Booking[]>(
+        '/api/admin/bookings',
+        fetcher,
+        {
+            refreshInterval: 60000, // Tự động làm mới mỗi phút
+            revalidateOnFocus: true
         }
-    }, [searchParams, bookings, router])
+    )
 
-    const fetchBookings = async () => {
-        try {
-            const res = await fetch('/api/admin/bookings')
-            if (res.ok) {
-                const data = await res.json()
-                setBookings(data)
-                setFilteredBookings(data)
-            }
-        } catch (error) {
-            console.error('Error fetching bookings:', error)
-        } finally {
+    // 2. Fetch rooms
+    const { data: roomsData } = useSWR<Room[]>('/api/admin/rooms', fetcher)
+
+    // 3. Fetch locations
+    const { data: locationsData } = useSWR<Location[]>('/api/admin/locations', fetcher)
+
+    useEffect(() => {
+        if (bookingsData) {
+            setBookings(bookingsData)
+            setFilteredBookings(bookingsData)
             setLoading(false)
         }
-    }
+    }, [bookingsData])
 
-    const fetchRooms = async () => {
-        try {
-            const res = await fetch('/api/admin/rooms')
-            if (res.ok) {
-                const data = await res.json()
-                setRooms(data)
-            }
-        } catch (error) {
-            console.error('Error fetching rooms:', error)
-        }
-    }
+    useEffect(() => {
+        if (roomsData) setRooms(roomsData)
+    }, [roomsData])
 
-    const fetchLocations = async () => {
-        try {
-            const res = await fetch('/api/admin/locations')
-            if (res.ok) {
-                const data = await res.json()
-                setLocations(data)
-                if (data.length > 0 && !selectedLocation) {
-                    setSelectedLocation(data[0].id)
-                }
+    useEffect(() => {
+        if (locationsData) {
+            setLocations(locationsData)
+            if (locationsData.length > 0 && !selectedLocation) {
+                setSelectedLocation(locationsData[0].id)
             }
-        } catch (error) {
-            console.error('Error fetching locations:', error)
         }
-    }
+    }, [locationsData, selectedLocation])
 
 
     const applyFilters = useCallback(() => {
@@ -244,7 +223,15 @@ function BookingsContent() {
             {/* Header */}
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">Quản lý Booking</h1>
+                    <div className="flex items-center gap-3">
+                        <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">Quản lý Booking</h1>
+                        {isValidating && (
+                            <div className="flex items-center gap-1.5 rounded-full bg-primary-50 px-2.5 py-1 text-[10px] font-medium text-primary-600 animate-pulse dark:bg-primary-900/20 dark:text-primary-400">
+                                <ArrowPathIcon className="size-3 animate-spin" />
+                                Đang đồng bộ...
+                            </div>
+                        )}
+                    </div>
                     <p className="mt-1 text-neutral-500 dark:text-neutral-400">
                         Xem và quản lý tất cả đặt lịch • {bookings.length} booking
                     </p>
@@ -602,14 +589,14 @@ function BookingsContent() {
             <CreateBookingModal
                 open={createModalOpen}
                 setOpen={setCreateModalOpen}
-                onSuccess={fetchBookings}
+                onSuccess={() => mutateBookings()}
             />
 
             <BookingDetailModal
                 open={detailModalOpen}
                 setOpen={setDetailModalOpen}
                 booking={selectedBooking}
-                onRefresh={fetchBookings}
+                onRefresh={() => mutateBookings()}
             />
         </div>
     )

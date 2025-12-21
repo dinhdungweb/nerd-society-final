@@ -87,29 +87,29 @@ export async function POST(request: NextRequest) {
             // Still update but log the discrepancy
         }
 
-        // Update booking status
-        const updatedBooking = await prisma.booking.update({
-            where: { id: booking.id },
-            data: {
-                status: 'CONFIRMED',
-                depositPaidAt: new Date(),
-            },
-            include: {
-                location: true,
-                room: true,
-                user: true,
-            },
-        })
-
-        // Update payment record if exists
-        await prisma.payment.updateMany({
-            where: { bookingId: booking.id },
-            data: {
-                status: 'COMPLETED',
-                transactionId,
-                paidAt: new Date(),
-            },
-        })
+        // Update booking and payment statuses in an atomic transaction
+        const [updatedBooking] = await prisma.$transaction([
+            prisma.booking.update({
+                where: { id: booking.id },
+                data: {
+                    status: 'CONFIRMED',
+                    depositPaidAt: new Date(),
+                },
+                include: {
+                    location: true,
+                    room: true,
+                    user: true,
+                },
+            }),
+            prisma.payment.updateMany({
+                where: { bookingId: booking.id },
+                data: {
+                    status: 'COMPLETED',
+                    transactionId,
+                    paidAt: new Date(),
+                },
+            })
+        ])
 
         console.log('[VietQR Webhook] Booking confirmed:', bookingCode)
 

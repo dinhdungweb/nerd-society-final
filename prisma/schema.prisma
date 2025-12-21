@@ -36,8 +36,12 @@ model User {
   sessions           Session[]
   posts              Post[]
   nerdCoinTxns       NerdCoinTransaction[]
+
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
+
+  @@index([name])
+  @@index([phone])
 }
 
 enum Role {
@@ -273,6 +277,8 @@ model Booking {
   @@index([date])
   @@index([status])
   @@index([customerPhone])
+  @@index([customerName])
+  @@index([customerEmail])
 }
 
 // Payment - Payment records

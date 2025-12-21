@@ -11,6 +11,16 @@ import DatePicker, { registerLocale } from 'react-datepicker'
 import TimeSelect from './TimeSelect'
 import DatePickerCustomHeaderSingleMonth from '@/components/DatePickerCustomHeaderSingleMonth'
 import DatePickerCustomDay from '@/components/DatePickerCustomDay'
+import useSWR from 'swr'
+import { ArrowPathIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
+
+const fetcher = (url: string) => fetch(url).then(res => res.json())
+const postFetcher = (url: string, { arg }: { arg: any }) =>
+    fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(arg)
+    }).then(res => res.json())
 
 
 registerLocale('vi', vi)
@@ -103,12 +113,7 @@ export default function BookingFormV2({
     const [note, setNote] = useState('')
 
     const [bookedSlots, setBookedSlots] = useState<BookedSlot[]>([])
-    const [loadingSlots, setLoadingSlots] = useState(false)
     const [priceInfo, setPriceInfo] = useState<PriceBreakdown | null>(null)
-    const [loadingPrice, setLoadingPrice] = useState(false)
-
-    // Availability Check State
-    const [isCheckingAvailability, setIsCheckingAvailability] = useState(false)
     const [availabilityError, setAvailabilityError] = useState<string | null>(null)
     const [showNerdCoinInfo, setShowNerdCoinInfo] = useState(false)
 
@@ -124,22 +129,15 @@ export default function BookingFormV2({
     const allTimeSlots = generateTimeSlots(timeStep)
     const isMeeting = serviceType === 'MEETING'
 
-    // Auto-fill customer info from session when logged in
+    // Auto-fill customer info from session
     useEffect(() => {
         if (session?.user) {
-            if (!customerName && session.user.name) {
-                setCustomerName(session.user.name)
-            }
-            if (!customerEmail && session.user.email) {
-                setCustomerEmail(session.user.email)
-            }
-            if (!customerPhone && (session.user as any).phone) {
-                setCustomerPhone((session.user as any).phone)
-            }
+            if (!customerName && session.user.name) setCustomerName(session.user.name)
+            if (!customerEmail && session.user.email) setCustomerEmail(session.user.email)
+            if (!customerPhone && (session.user as any).phone) setCustomerPhone((session.user as any).phone)
         }
     }, [session])
 
-    // Check if selected date is today
     const today = new Date()
     const isToday = date ? (
         date.getFullYear() === today.getFullYear() &&
@@ -147,133 +145,76 @@ export default function BookingFormV2({
         date.getDate() === today.getDate()
     ) : false
 
-    // Get current time + 15 min buffer (minimum booking lead time)
     const now = new Date()
-    now.setMinutes(now.getMinutes() + 15) // 15 min buffer
+    now.setMinutes(now.getMinutes() + 15)
     const currentHour = now.getHours()
-    const currentMinute = now.getMinutes()
     const currentTimeWithBuffer = format(now, 'HH:mm')
-
-    // Filter time slots: if today, only show future slots
-    // If current time is past closing (22:00) or wrapped to next day, no slots available
-    const isPastClosingTime = currentHour >= 22 || currentHour < 8 // Past 22:00 or before 08:00
+    const isPastClosingTime = currentHour >= 22 || currentHour < 8
 
     const timeSlots = isToday
-        ? (isPastClosingTime
-            ? [] // No slots available - all are in the past
-            : allTimeSlots.filter(t => t >= currentTimeWithBuffer))
+        ? (isPastClosingTime ? [] : allTimeSlots.filter(t => t >= currentTimeWithBuffer))
         : allTimeSlots
 
+    // 1. Fetch booked slots
+    const dateStr = date ? format(date, 'yyyy-MM-dd') : null
+    const { data: availabilityData, isLoading: loadingSlots, error: availabilityErrorSWR, isValidating: isRefreshingSlots } = useSWR(
+        dateStr && roomId ? `/api/booking/availability?roomId=${roomId}&date=${dateStr}` : null,
+        fetcher,
+        {
+            refreshInterval: 30000, // Tự động làm mới mỗi 30s
+            revalidateOnFocus: true,
+            dedupingInterval: 2000
+        }
+    )
 
-
-    // Fetch booked slots when date changes
     useEffect(() => {
-        // Reset immediately to prevent stale data display
-        setBookedSlots([])
+        if (availabilityData) setBookedSlots(availabilityData.bookedSlots || [])
+        else setBookedSlots([])
+    }, [availabilityData])
+
+    // 2. Calculate price
+    const duration = (startTime && endTime) ? calculateDuration(startTime, endTime) : 0
+    const shouldFetchPrice = duration > 0 && guests > 0
+    const { data: priceData, isLoading: loadingPrice } = useSWR(
+        shouldFetchPrice ? [`/api/booking/calculate`, serviceType, duration, guests] : null,
+        ([url]) => fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ serviceType, durationMinutes: duration, guests })
+        }).then(res => res.json())
+    )
+
+    useEffect(() => {
+        setPriceInfo(priceData || null)
+    }, [priceData])
+
+    // 3. Real-time Availability Check
+    const shouldCheckRealtime = dateStr && startTime && endTime && roomId && !isRangeOverlapping(startTime, endTime, bookedSlots)
+    const { data: checkData, isLoading: isCheckingAvailability, error: checkErrorSWR } = useSWR(
+        shouldCheckRealtime ? [`/api/booking/check-slot`, dateStr, startTime, endTime, roomId] : null,
+        ([url]) => fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ roomId, date: dateStr, startTime, endTime })
+        }).then(res => res.json()),
+        {
+            dedupingInterval: 500,
+            revalidateOnFocus: true
+        }
+    )
+
+    useEffect(() => {
+        if (checkData && !checkData.available) setAvailabilityError(checkData.error || 'Khung giờ này đã có người đặt')
+        else setAvailabilityError(null)
+    }, [checkData])
+
+    useEffect(() => {
         setStartTime('')
         setEndTime('')
         setPriceInfo(null)
+    }, [date])
 
-        if (!date || !roomId) return
-
-        const fetchSlots = async () => {
-            setLoadingSlots(true)
-            try {
-                const dateStr = format(date, 'yyyy-MM-dd')
-                const res = await fetch(`/api/booking/availability?roomId=${roomId}&date=${dateStr}`)
-                const data = await res.json()
-                setBookedSlots(data.bookedSlots || [])
-            } catch (error) {
-                console.error('Error fetching slots:', error)
-                setBookedSlots([]) // Reset on error too
-            } finally {
-                setLoadingSlots(false)
-            }
-        }
-
-        fetchSlots()
-    }, [date, roomId])
-
-    // Calculate price when times change
-    useEffect(() => {
-        if (!startTime || !endTime) {
-            setPriceInfo(null)
-            return
-        }
-
-        const duration = calculateDuration(startTime, endTime)
-        if (duration <= 0) {
-            setPriceInfo(null)
-            return
-        }
-
-        const fetchPrice = async () => {
-            setLoadingPrice(true)
-            try {
-                const res = await fetch('/api/booking/calculate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        serviceType,
-                        durationMinutes: duration,
-                        guests,
-                    }),
-                })
-                const data = await res.json()
-                setPriceInfo(data)
-            } catch (error) {
-                console.error('Error calculating price:', error)
-            } finally {
-                setLoadingPrice(false)
-            }
-        }
-
-        fetchPrice()
-    }, [startTime, endTime, guests, serviceType])
-
-    // Real-time Availability Check
-    useEffect(() => {
-        if (!date || !startTime || !endTime || !roomId) {
-            setAvailabilityError(null)
-            return
-        }
-
-        // Don't check if basic overlap check already failed
-        if (isRangeOverlapping(startTime, endTime, bookedSlots)) {
-            return
-        }
-
-        const checkAvailability = async () => {
-            setIsCheckingAvailability(true)
-            setAvailabilityError(null)
-            try {
-                const res = await fetch('/api/booking/check-slot', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        roomId,
-                        date: format(date, 'yyyy-MM-dd'),
-                        startTime,
-                        endTime,
-                    }),
-                })
-                const data = await res.json()
-                if (!data.available) {
-                    setAvailabilityError(data.error || 'Khung giờ này đã có người đặt')
-                }
-            } catch (error) {
-                console.error('Error checking availability:', error)
-            } finally {
-                setIsCheckingAvailability(false)
-            }
-        }
-
-        // Debounce slightly to avoid spamming while user is selecting
-        const timer = setTimeout(checkAvailability, 500)
-        return () => clearTimeout(timer)
-    }, [date, startTime, endTime, roomId, bookedSlots])
-
-    // Filter end time options based on start time
+    // Filter end time options
     const endTimeOptions = timeSlots.filter(t => t > startTime)
 
     const handleSubmit = () => {
@@ -297,7 +238,23 @@ export default function BookingFormV2({
     const isValid = date && startTime && endTime && customerName && customerPhone && priceInfo && !hasOverlap && !availabilityError && !isCheckingAvailability
 
     return (
-        <div className="space-y-5 rounded-2xl bg-white p-6 shadow-sm dark:bg-neutral-900">
+        <div className="space-y-5 rounded-2xl bg-white p-6 shadow-sm dark:bg-neutral-900 relative">
+            {/* Refreshing Indicator (Subtle) */}
+            {(isRefreshingSlots || isCheckingAvailability) && !loadingSlots && (
+                <div className="absolute top-4 right-6 flex items-center gap-1.5 text-[10px] font-medium text-neutral-400 animate-pulse">
+                    <ArrowPathIcon className="size-3 animate-spin" />
+                    Đang đồng bộ dữ liệu...
+                </div>
+            )}
+
+            {/* Network Error Message */}
+            {(availabilityErrorSWR || checkErrorSWR) && (
+                <div className="rounded-xl bg-amber-50 p-3 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400 flex items-center gap-2 text-xs">
+                    <ExclamationTriangleIcon className="size-4 shrink-0" />
+                    Kết nối chập chờn. Dữ liệu có thể chưa được cập nhật mới nhất.
+                </div>
+            )}
+
             {/* Date Selection */}
             <div>
                 <label className="mb-2 block text-sm font-medium text-neutral-700 dark:text-neutral-300">
