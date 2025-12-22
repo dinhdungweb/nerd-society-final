@@ -139,7 +139,7 @@ export async function POST(request: NextRequest) {
             )
         }
 
-        // Validate: Operating hours (08:00 - 22:00)
+        // Validate: Operating hours (24/7)
         const startMinutes = parseTimeToMinutes(startTime)
         const endMinutes = parseTimeToMinutes(endTime)
         const openMinutes = parseTimeToMinutes(OPERATING_HOURS.open)
