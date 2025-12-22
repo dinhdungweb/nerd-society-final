@@ -41,7 +41,7 @@ export async function notifyNewBooking(bookingCode: string, customerName: string
         type: 'BOOKING_NEW',
         title: 'Booking mới',
         message: `${customerName} vừa đặt phòng #${bookingCode}`,
-        link: `/admin/bookings?id=${bookingId}`,
+        link: `/admin/bookings?id=${bookingId}&modal=detail`,
         bookingId,
     })
 }
@@ -51,7 +51,7 @@ export async function notifyBookingConfirmed(bookingCode: string, customerName: 
         type: 'BOOKING_CONFIRMED',
         title: 'Booking đã xác nhận',
         message: `Booking #${bookingCode} của ${customerName} đã được xác nhận`,
-        link: `/admin/bookings?id=${bookingId}`,
+        link: `/admin/bookings?id=${bookingId}&modal=detail`,
         bookingId,
     })
 }
@@ -62,7 +62,7 @@ export async function notifyPaymentReceived(bookingCode: string, amount: number,
         type: 'PAYMENT_RECEIVED',
         title: 'Thanh toán thành công',
         message: `Nhận ${formattedAmount} cho booking #${bookingCode}`,
-        link: `/admin/bookings?id=${bookingId}`,
+        link: `/admin/bookings?id=${bookingId}&modal=detail`,
         bookingId,
     })
 }
@@ -72,7 +72,7 @@ export async function notifyCheckIn(bookingCode: string, customerName: string, b
         type: 'CHECKIN',
         title: 'Khách check-in',
         message: `${customerName} đã check-in (${bookingCode})`,
-        link: `/admin/bookings?id=${bookingId}`,
+        link: `/admin/bookings?id=${bookingId}&modal=detail`,
         bookingId,
     })
 }
@@ -82,7 +82,7 @@ export async function notifyCheckOut(bookingCode: string, customerName: string, 
         type: 'CHECKOUT',
         title: 'Khách check-out',
         message: `${customerName} đã check-out (${bookingCode})`,
-        link: `/admin/bookings?id=${bookingId}`,
+        link: `/admin/bookings?id=${bookingId}&modal=detail`,
         bookingId,
     })
 }
@@ -92,7 +92,7 @@ export async function notifyOvertime(bookingCode: string, customerName: string, 
         type: 'SYSTEM',
         title: 'Khách quá giờ!',
         message: `${customerName} tại ${roomName} đã quá giờ ${overtimeMinutes} phút (${bookingCode})`,
-        link: `/admin/bookings?id=${bookingId}`,
+        link: `/admin/bookings?id=${bookingId}&modal=detail`,
         bookingId,
     })
 }
@@ -102,7 +102,7 @@ export async function notifyEndingSoon(bookingCode: string, customerName: string
         type: 'SYSTEM',
         title: 'Sắp hết giờ',
         message: `${customerName} tại ${roomName} còn ${minutesLeft} phút (${bookingCode})`,
-        link: `/admin/bookings?id=${bookingId}`,
+        link: `/admin/bookings?id=${bookingId}&modal=detail`,
         bookingId,
     })
 }
@@ -112,7 +112,7 @@ export async function notifyBookingCancelled(bookingCode: string, customerName: 
         type: 'BOOKING_CANCELLED',
         title: 'Booking đã hủy',
         message: `Booking #${bookingCode} của ${customerName} đã bị hủy`,
-        link: `/admin/bookings?id=${bookingId}`,
+        link: `/admin/bookings?id=${bookingId}&modal=detail`,
         bookingId,
     })
 }

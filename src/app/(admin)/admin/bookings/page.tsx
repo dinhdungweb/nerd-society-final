@@ -153,6 +153,22 @@ function BookingsContent() {
         }
     }, [locationsData, selectedLocation])
 
+    // Handle URL query params for opening modal from notifications
+    useEffect(() => {
+        const bookingId = searchParams.get('id')
+
+        // Mở modal nếu có id param trong URL (từ thông báo)
+        if (bookingId && bookingsData) {
+            const booking = bookingsData.find(b => b.id === bookingId)
+            if (booking) {
+                setSelectedBooking(booking)
+                setDetailModalOpen(true)
+                // Clear the URL params after opening modal
+                router.replace('/admin/bookings', { scroll: false })
+            }
+        }
+    }, [searchParams, bookingsData, router])
+
 
     const applyFilters = useCallback(() => {
         let result = [...bookings]
