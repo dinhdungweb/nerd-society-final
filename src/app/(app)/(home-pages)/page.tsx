@@ -34,8 +34,20 @@ async function getSettings() {
   }
 }
 
+async function getCombos() {
+  try {
+    return await prisma.combo.findMany({
+      where: { isActive: true },
+      orderBy: { sortOrder: 'asc' },
+    })
+  } catch (error) {
+    return []
+  }
+}
+
 export default async function Page() {
   const settings = await getSettings()
+  const combos = await getCombos()
 
   return (
     <>
@@ -52,7 +64,7 @@ export default async function Page() {
           aboutContent={settings.aboutContent}
         />
         <GallerySection />
-        <ComboSection />
+        <ComboSection combos={combos} />
         <LocationsNerd />
         <NewsSection />
         <ContactNerd />

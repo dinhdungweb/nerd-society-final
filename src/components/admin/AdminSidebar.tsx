@@ -50,6 +50,7 @@ const navigationGroups: NavGroup[] = [
         name: 'Quản lý đặt lịch',
         items: [
             { name: 'Bookings', href: '/admin/bookings', icon: CalendarDaysIcon, permissionKey: 'canViewBookings' },
+            { name: 'Combos', href: '/admin/combos', icon: Squares2X2Icon, permissionKey: 'canViewServices' },
             { name: 'Phòng', href: '/admin/rooms', icon: CubeIcon, permissionKey: 'canViewRooms' },
             { name: 'Dịch vụ', href: '/admin/services', icon: Squares2X2Icon, permissionKey: 'canViewServices' },
             { name: 'Cơ sở', href: '/admin/locations', icon: BuildingStorefrontIcon, permissionKey: 'canViewLocations' },
